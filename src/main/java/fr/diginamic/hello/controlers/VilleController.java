@@ -1,7 +1,11 @@
 package fr.diginamic.hello.controlers;
 
+import fr.diginamic.hello.dto.VilleDTO;
+import fr.diginamic.hello.mappers.VilleMapper;
 import fr.diginamic.hello.models.Ville;
+import fr.diginamic.hello.services.VilleService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -20,103 +24,105 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequestMapping("/villes") // URL de base pour toutes les méthodes
 public class VilleController {
 
+    @Autowired
+    private VilleService villeService;
+
     /**
-     * Liste partagée de villes (simulation base de données)
-     * Dans un vrai projet, cela serait géré par JPA/Hibernate
+     * Injection de dépendance du mapper pour la conversion entité/DTO
+     * Spring injecte automatiquement une instance de VilleMapper
      */
-    private List<Ville> villes;
+    @Autowired
+    private VilleMapper villeMapper;
+
 
     /**
-     * Générateur d'ID automatique thread-safe
-     * AtomicInteger garantit l'unicité même en cas d'accès concurrent
-     */
-    private AtomicInteger idGenerator = new AtomicInteger(1);
-
-    /**
-     * Constructeur - initialise la liste avec des données par défaut
-     */
-    public VilleController() {
-        this.villes = new ArrayList<>();
-
-        // Ajout de villes avec des IDs générés automatiquement
-        villes.add(new Ville(generateId(), "Paris", 2161000));
-        villes.add(new Ville(generateId(), "Marseille", 861635));
-        villes.add(new Ville(generateId(), "Lyon", 513275));
-        villes.add(new Ville(generateId(), "Toulouse", 471941));
-        villes.add(new Ville(generateId(), "Nice", 342637));
-    }
-
-    /**
-     * Génère un nouvel ID unique de manière thread-safe
-     * @return nouvel ID unique
-     */
-    private int generateId() {
-        return idGenerator.getAndIncrement();
-    }
-
-    // ========== READ OPERATIONS ==========
-
-    /**
-     * GET /villes - Récupère toutes les villes
-     * @return liste complète des villes
+     * GET /villes - Récupère la liste de toutes les villes avec leurs départements
+     * @return List<VilleDTO> Liste complète des villes avec départements associés
      */
     @GetMapping
-    public List<Ville> getAllVilles() {
-        return villes;
+    public List<VilleDTO> getAllVilles() {
+        // Délégation au service pour récupérer toutes les villes
+        List<Ville> villes = villeService.extractVilles();
+        // Conversion des entités en DTO avec départements inclus
+        return villeMapper.toDTOList(villes);
     }
 
     /**
-     * GET /villes/{id} - Récupère une ville par son ID
-     * @param id identifiant de la ville recherchée
-     * @return ResponseEntity avec la ville ou erreur 404
+     * GET /villes/{id} - Récupère une ville par son ID avec son département
+     * @param id identifiant unique de la ville
+     * @return ResponseEntity<VilleDTO> ville trouvée avec département ou 404 si non trouvée
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Ville> getVilleById(@PathVariable int id) {
-        // Recherche de la ville par ID avec programmation fonctionnelle
-        return villes.stream()
-                .filter(ville -> ville.getId() == id)
-                .findFirst()
-                .map(ResponseEntity::ok) // 200 OK avec la ville
-                .orElse(ResponseEntity.notFound().build()); // 404 Not Found
+    public ResponseEntity<VilleDTO> getVilleById(@PathVariable Long id) {
+        // Recherche de la ville par ID via le service
+        Ville ville = villeService.extractVille(id);
+
+        // Retour de la ville si trouvée, sinon erreur 404
+        if (ville != null) {
+            VilleDTO villeDTO = villeMapper.toDTO(ville);
+            return ResponseEntity.ok(villeDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * GET /villes/nom/{nom} - Récupère une ville par son nom avec son département
+     * @param nom nom de la ville à rechercher (insensible à la casse)
+     * @return ResponseEntity<VilleDTO> ville trouvée avec département ou 404 si non trouvée
+     */
+    @GetMapping("/nom/{nom}")
+    public ResponseEntity<VilleDTO> getVilleByNom(@PathVariable String nom) {
+        // Recherche de la ville par nom via le service
+        Ville ville = villeService.extractVille(nom);
+
+        // Retour de la ville si trouvée, sinon erreur 404
+        if (ville != null) {
+            VilleDTO villeDTO = villeMapper.toDTO(ville);
+            return ResponseEntity.ok(villeDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // ========== CREATE OPERATION ==========
 
     /**
-     * POST /villes - Crée une nouvelle ville avec validation automatique
-     * @param nouvelleVille ville à créer (JSON converti automatiquement)
-     * @param bindingResult résultat de la validation
-     * @return ResponseEntity avec message de succès ou d'erreur
+     * POST /villes - Crée une nouvelle ville avec validation (département obligatoire)
+     * @param nouvelleVilleDTO données de la nouvelle ville à créer avec département
+     * @param bindingResult résultat de la validation des données
+     * @return ResponseEntity<VilleDTO> ville créée avec département ou erreur
      */
     @PostMapping
-    public ResponseEntity<String> createVille(@Valid @RequestBody Ville nouvelleVille,
-                                              BindingResult bindingResult) {
-
+    public ResponseEntity<?> createVille(@Valid @RequestBody VilleDTO nouvelleVilleDTO,
+                                        BindingResult bindingResult) {
         // Vérification des erreurs de validation
         if (bindingResult.hasErrors()) {
-            StringBuilder erreurs = new StringBuilder("Erreurs de validation : ");
+            StringBuilder erreurs = new StringBuilder("Erreur de validation : ");
             bindingResult.getAllErrors().forEach(error ->
-                    erreurs.append(error.getDefaultMessage()).append("; ")
+                    erreurs.append(error.getDefaultMessage()).append(";")
             );
             return ResponseEntity.badRequest().body(erreurs.toString());
         }
 
-        // Vérification nom unique (business logic)
-        boolean nomExiste = villes.stream()
-                .anyMatch(ville -> ville.getNom().equalsIgnoreCase(nouvelleVille.getNom()));
-
-        if (nomExiste) {
-            return ResponseEntity.badRequest()
-                    .body("Une ville avec ce nom existe déjà");
+        try {
+            // Conversion DTO -> Entité
+            Ville nouvelleVille = villeMapper.toEntity(nouvelleVilleDTO);
+            // Délégation au service pour l'insertion avec vérifications métier
+            List<Ville> villesMisesAjour = villeService.insertVille(nouvelleVille);
+            
+            // Retour de la ville créée en DTO
+            Ville villeCree = villesMisesAjour.stream()
+                    .filter(v -> v.getNom().equals(nouvelleVille.getNom()))
+                    .findFirst()
+                    .orElse(nouvelleVille);
+            
+            VilleDTO villeCreeDTO = villeMapper.toDTO(villeCree);
+            return ResponseEntity.ok(villeCreeDTO);
+        } catch (IllegalArgumentException e) {
+            // Gestion des erreurs métier (nom déjà existant, département manquant, etc.)
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        // Génération automatique de l'ID (l'utilisateur ne doit PAS le fournir)
-        nouvelleVille.setId(generateId());
-
-        // Ajout de la ville
-        villes.add(nouvelleVille);
-
-        return ResponseEntity.ok("Ville créée avec succès (ID généré automatiquement: " + nouvelleVille.getId() + ")");
     }
 
     // ========== UPDATE OPERATION ==========
@@ -124,14 +130,14 @@ public class VilleController {
     /**
      * PUT /villes/{id} - Met à jour une ville existante avec validation
      * @param id identifiant de la ville à modifier
-     * @param villeModifiee nouvelles données de la ville
+     * @param villeModifieeDTO nouvelles données de la ville avec département
      * @param bindingResult résultat de la validation
-     * @return ResponseEntity avec message de succès ou d'erreur
+     * @return ResponseEntity<VilleDTO> ville mise à jour avec département ou erreur
      */
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateVille(@PathVariable int id,
-                                              @Valid @RequestBody Ville villeModifiee,
-                                              BindingResult bindingResult) {
+    public ResponseEntity<?> updateVille(@PathVariable Long id,
+                                        @Valid @RequestBody VilleDTO villeModifieeDTO,
+                                        BindingResult bindingResult) {
 
         // Vérification des erreurs de validation
         if (bindingResult.hasErrors()) {
@@ -142,30 +148,29 @@ public class VilleController {
             return ResponseEntity.badRequest().body(erreurs.toString());
         }
 
-        // Recherche de la ville à modifier
-        for (Ville ville : villes) {
-            if (ville.getId() == id) {
-
-                // Vérification que le nouveau nom n'est pas déjà pris (sauf si même ville)
-                boolean nomPris = villes.stream()
-                        .anyMatch(autreVille -> autreVille.getId() != id &&
-                                autreVille.getNom().equalsIgnoreCase(villeModifiee.getNom()));
-
-                if (nomPris) {
-                    return ResponseEntity.badRequest()
-                            .body("Le nom de ville est déjà utilisé");
-                }
-
-                // Mise à jour des données (on garde le même ID - pas de modification d'ID en REST)
-                ville.setNom(villeModifiee.getNom());
-                ville.setNbHabitants(villeModifiee.getNbHabitants());
-
-                return ResponseEntity.ok("Ville modifiée avec succès");
+        try {
+            // Conversion DTO -> Entité
+            Ville villeModifiee = villeMapper.toEntity(villeModifieeDTO);
+            // Délégation au service pour la logique métier de modification
+            List<Ville> villesMisesAJour = villeService.modifierVille(id, villeModifiee);
+            
+            // Retour de la ville modifiée en DTO
+            Ville villeModifieeResult = villesMisesAJour.stream()
+                    .filter(v -> v.getId().equals(id))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (villeModifieeResult != null) {
+                VilleDTO villeModifieeResultDTO = villeMapper.toDTO(villeModifieeResult);
+                return ResponseEntity.ok(villeModifieeResultDTO);
+            } else {
+                return ResponseEntity.ok("Ville mise à jour avec succès");
             }
-        }
 
-        // Ville non trouvée
-        return ResponseEntity.notFound().build(); // 404 Not Found
+        } catch (IllegalArgumentException e) {
+            // Gestion des erreurs métier (ville inexistante, nom déjà pris, etc.)
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // ========== DELETE OPERATION ==========
@@ -173,18 +178,19 @@ public class VilleController {
     /**
      * DELETE /villes/{id} - Supprime une ville
      * @param id identifiant de la ville à supprimer
-     * @return ResponseEntity avec message de succès ou d'erreur
+     * @return ResponseEntity<String> message de succès ou d'erreur
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteVille(@PathVariable int id) {
+    public ResponseEntity<String> deleteVille(@PathVariable Long id) {
 
-        // Recherche et suppression avec programmation fonctionnelle
-        boolean removed = villes.removeIf(ville -> ville.getId() == id);
-
-        if (removed) {
+        try {
+            // Délégation au service pour la logique métier de suppression
+            List<Ville> villesMisesAJour = villeService.supprimerVille(id);
             return ResponseEntity.ok("Ville supprimée avec succès");
-        } else {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+
+        } catch (IllegalArgumentException e) {
+            // Gestion des erreurs métier (ville inexistante)
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

@@ -1,17 +1,22 @@
 package fr.diginamic.hello.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
 /**
  * Classe représentant une ville avec validation des données
  * Équivalent d'une entité Doctrine en Symfony avec contraintes
  */
+@Entity
+@Table(name = "ville")
 public class Ville {
-
     /**
      * ID généré automatiquement - ne doit pas être fourni lors de la création
      */
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     /**
      * Nom de la ville avec contraintes de validation
@@ -28,22 +33,32 @@ public class Ville {
     @Max(value = 50000000, message = "Le nombre d'habitants ne peut pas dépasser 50 millions")
     private Integer nbHabitants;
 
+    /**
+     * Département auquel appartient cette ville
+     * Relation Many-to-One obligatoire
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departement_id", nullable = false)
+    @NotNull(message = "Le département ne peut pas être null")
+    @JsonBackReference // Gestion des références circulaires JSON
+    private Departement departement;
+
     // Constructeur par défaut (obligatoire pour la sérialisation JSON)
     public Ville() {
     }
 
-    // Constructeur avec tous les paramètres (pour les données initiales)
-    public Ville(int id, String nom, Integer nbHabitants) {
-        this.id = id;
+
+    // Constructeur sans ID (pour création - ID généré automatiquement)
+    public Ville(String nom, Integer nbHabitants) {
         this.nom = nom;
         this.nbHabitants = nbHabitants;
     }
 
-    // Constructeur sans ID (pour création - ID généré automatiquement)
-    public Ville(String nom, Integer nbHabitants) {
-
+    // Constructeur complet avec département
+    public Ville(String nom, Integer nbHabitants, Departement departement) {
         this.nom = nom;
         this.nbHabitants = nbHabitants;
+        this.departement = departement;
     }
 
     // Getters et Setters
@@ -52,16 +67,8 @@ public class Ville {
      * Récupère l'ID de la ville
      * @return ID de la ville
      */
-    public int getId() {
+    public Long getId() {
         return id;
-    }
-
-    /**
-     * Définit l'ID de la ville (usage interne uniquement)
-     * @param id nouvel ID de la ville
-     */
-    public void setId(int id) {
-        this.id = id;
     }
 
     /**
@@ -96,6 +103,22 @@ public class Ville {
         this.nbHabitants = nbHabitants;
     }
 
+    /**
+     * Récupère le département de la ville
+     * @return département de la ville
+     */
+    public Departement getDepartement() {
+        return departement;
+    }
+
+    /**
+     * Définit le département de la ville
+     * @param departement nouveau département
+     */
+    public void setDepartement(Departement departement) {
+        this.departement = departement;
+    }
+
     // Méthode toString() pour faciliter le débogage
     @Override
     public String toString() {
@@ -103,6 +126,7 @@ public class Ville {
                 "id=" + id +
                 ", nom='" + nom + '\'' +
                 ", nbHabitants=" + nbHabitants +
+                ", departement=" + (departement != null ? departement.getCode() : "null") +
                 '}';
     }
 }
