@@ -90,6 +90,15 @@ public class VilleService {
             throw new IllegalArgumentException("Une ville avec ce nom existe déjà");
         }
 
+        // Résolution du département si fourni par code
+        if (ville.getDepartement() != null && ville.getDepartement().getCode() != null) {
+            Optional<Departement> departementExistant = departementDao.findByCode(ville.getDepartement().getCode());
+            if (departementExistant.isPresent()) {
+                ville.setDepartement(departementExistant.get());
+            } else {
+                throw new IllegalArgumentException("Département non trouvé avec le code: " + ville.getDepartement().getCode());
+            }
+        }
 
         villeDao.save(ville);
 
@@ -116,6 +125,15 @@ public class VilleService {
         ville.setNom(villeModifiee.getNom());
         ville.setNbHabitants(villeModifiee.getNbHabitants());
 
+        // Résolution du département si fourni par code
+        if (villeModifiee.getDepartement() != null && villeModifiee.getDepartement().getCode() != null) {
+            Optional<Departement> departementExistant = departementDao.findByCode(villeModifiee.getDepartement().getCode());
+            if (departementExistant.isPresent()) {
+                ville.setDepartement(departementExistant.get());
+            } else {
+                throw new IllegalArgumentException("Département non trouvé avec le code: " + villeModifiee.getDepartement().getCode());
+            }
+        }
 
         villeDao.save(ville);
 

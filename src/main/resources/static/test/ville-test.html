@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests Frontend - Gestion des Villes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tests Frontend - Gestion des Villes</h1>
+    <p>Cette page teste les fonctionnalités CRUD des villes, notamment le bug de modification des départements.</p>
+
+    <div class="test-container">
+        <h2>Test Scénario Narbonne (Hérault → Aude)</h2>
+        <p>Reproduit le bug rencontré : modification du département de Narbonne</p>
+        <button onclick="testModificationNarbonne()">🧪 Tester Modification Narbonne</button>
+        <button onclick="testCreationVille()">➕ Tester Création Ville</button>
+        <button onclick="testRecuperationVilles()">📋 Lister toutes les villes</button>
+        <button onclick="clearLog()">🗑️ Vider le log</button>
+    </div>
+
+    <div class="test-container">
+        <h3>Résultats des tests</h3>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h3>Log détaillé</h3>
+        <div id="test-log" class="log"></div>
+    </div>
+
+    <script>
+        // Configuration API (comme dans app.js)
+        const API_BASE_URL = 'http://localhost:8081';
+        const API_ENDPOINTS = {
+            villes: `${API_BASE_URL}/villes`,
+            departements: `${API_BASE_URL}/departements`
+        };
+
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('test-log');
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logDiv.innerHTML += logEntry;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(logEntry);
+        }
+
+        function addTestResult(test, success, message) {
+            testResults.push({ test, success, message, timestamp: new Date() });
+            updateResultsDisplay();
+        }
+
+        function updateResultsDisplay() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '';
+            
+            testResults.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result ${result.success ? 'test-success' : 'test-error'}`;
+                resultDiv.innerHTML = `
+                    <strong>${result.test}</strong><br>
+                    ${result.message}<br>
+                    <small>${result.timestamp.toLocaleString()}</small>
+                `;
+                resultsDiv.appendChild(resultDiv);
+            });
+        }
+
+        function clearLog() {
+            document.getElementById('test-log').innerHTML = '';
+            testResults = [];
+            updateResultsDisplay();
+        }
+
+        async function testRecuperationVilles() {
+            log('Début du test de récupération des villes');
+            
+            try {
+                const response = await fetch(API_ENDPOINTS.villes);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const villes = await response.json();
+                log(`✅ ${villes.length} villes récupérées avec succès`);
+                
+                // Afficher quelques villes pour debug
+                villes.slice(0, 5).forEach(ville => {
+                    log(`   - ${ville.nom} (${ville.nbHabitants} hab.) - ${ville.departement?.code} ${ville.departement?.nom}`);
+                });
+                
+                addTestResult('Récupération villes', true, `${villes.length} villes trouvées`);
+                return villes;
+                
+            } catch (error) {
+                log(`❌ Erreur lors de la récupération: ${error.message}`, 'error');
+                addTestResult('Récupération villes', false, error.message);
+                throw error;
+            }
+        }
+
+        async function testCreationVille() {
+            log('Début du test de création d\'une ville');
+            
+            const nouvelleVille = {
+                nom: 'Test City',
+                nbHabitants: 12345,
+                departement: {
+                    id: 1 // On assume que l'ID 1 existe (probablement Ain)
+                }
+            };
+
+            try {
+                const response = await fetch(API_ENDPOINTS.villes, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(nouvelleVille)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+                }
+
+                const villeCreee = await response.json();
+                log(`✅ Ville créée: ${villeCreee.nom} (ID: ${villeCreee.id}) dans ${villeCreee.departement?.nom}`);
+                
+                addTestResult('Création ville', true, `Test City créée avec ID ${villeCreee.id}`);
+
+                // Nettoyer en supprimant la ville test
+                await supprimerVille(villeCreee.id);
+                
+                return villeCreee;
+
+            } catch (error) {
+                log(`❌ Erreur lors de la création: ${error.message}`, 'error');
+                addTestResult('Création ville', false, error.message);
+                throw error;
+            }
+        }
+
+        async function supprimerVille(id) {
+            try {
+                const response = await fetch(`${API_ENDPOINTS.villes}/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    log(`🗑️ Ville supprimée (ID: ${id})`);
+                } else {
+                    log(`⚠️ Erreur lors de la suppression de la ville ${id}: ${response.status}`, 'warn');
+                }
+            } catch (error) {
+                log(`❌ Erreur lors de la suppression: ${error.message}`, 'error');
+            }
+        }
+
+        async function testModificationNarbonne() {
+            log('🧪 Début du test de modification de Narbonne (Hérault → Aude)');
+            
+            try {
+                // Étape 1: Récupérer toutes les villes pour trouver Narbonne
+                log('📋 Récupération de la liste des villes...');
+                const villes = await testRecuperationVilles();
+                
+                const narbonne = villes.find(v => v.nom === 'Narbonne');
+                if (!narbonne) {
+                    throw new Error('Narbonne non trouvée dans les données');
+                }
+                
+                log(`🎯 Narbonne trouvée - ID: ${narbonne.id}, Département initial: ${narbonne.departement?.code} (${narbonne.departement?.nom})`);
+                
+                // Étape 2: Récupérer les départements pour trouver l'Aude
+                log('🗂️ Récupération des départements...');
+                const deptsResponse = await fetch(API_ENDPOINTS.departements);
+                if (!deptsResponse.ok) {
+                    throw new Error(`Erreur récupération départements: ${deptsResponse.status}`);
+                }
+                const departements = await deptsResponse.json();
+                
+                const aude = departements.find(d => d.code === '11');
+                if (!aude) {
+                    throw new Error('Département Aude (11) non trouvé');
+                }
+                
+                log(`🗂️ Département Aude trouvé - ID: ${aude.id}, Nom: ${aude.nom}`);
+                
+                // Étape 3: Préparer les données de modification
+                const donneesModification = {
+                    nom: narbonne.nom,
+                    nbHabitants: narbonne.nbHabitants,
+                    departement: {
+                        id: aude.id
+                    }
+                };
+                
+                log(`🔄 Modification de Narbonne vers l'Aude...`);
+                log(`   Données envoyées: ${JSON.stringify(donneesModification, null, 2)}`);
+                
+                // Étape 4: Exécuter la modification
+                const modifResponse = await fetch(`${API_ENDPOINTS.villes}/${narbonne.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(donneesModification)
+                });
+
+                if (!modifResponse.ok) {
+                    const errorText = await modifResponse.text();
+                    throw new Error(`Erreur HTTP ${modifResponse.status}: ${errorText}`);
+                }
+
+                const villeModifiee = await modifResponse.json();
+                log(`✅ Réponse de modification reçue: ${villeModifiee.nom} dans ${villeModifiee.departement?.code} (${villeModifiee.departement?.nom})`);
+                
+                // Étape 5: Vérification finale - re-récupérer la ville
+                log(`🔍 Vérification finale - récupération de Narbonne...`);
+                const verificationResponse = await fetch(`${API_ENDPOINTS.villes}/${narbonne.id}`);
+                
+                if (!verificationResponse.ok) {
+                    throw new Error(`Erreur vérification: ${verificationResponse.status}`);
+                }
+                
+                const villeFinal = await verificationResponse.json();
+                log(`🔍 État final de Narbonne: ${villeFinal.nom} dans ${villeFinal.departement?.code} (${villeFinal.departement?.nom})`);
+                
+                // Étape 6: Validation du résultat
+                const success = villeFinal.departement?.code === '11';
+                
+                if (success) {
+                    log(`✅ TEST RÉUSSI: Narbonne est maintenant bien dans l'Aude (11)`);
+                    addTestResult('Modification Narbonne', true, `Département changé avec succès: ${narbonne.departement?.code} → 11`);
+                } else {
+                    log(`❌ TEST ÉCHOUÉ: Narbonne est encore dans ${villeFinal.departement?.code} au lieu de 11`, 'error');
+                    addTestResult('Modification Narbonne', false, `Département non modifié: encore dans ${villeFinal.departement?.code}`);
+                }
+                
+                return success;
+                
+            } catch (error) {
+                log(`❌ ERREUR dans le test de modification: ${error.message}`, 'error');
+                addTestResult('Modification Narbonne', false, error.message);
+                throw error;
+            }
+        }
+
+        // Initialisation
+        window.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Page de tests chargée - Prêt pour les tests');
+            log('💡 Cliquez sur les boutons pour exécuter les tests');
+        });
+    </script>
+</body>
+</html>
