@@ -71,10 +71,9 @@ public class VilleMapper {
         ville.setNbHabitants(villeDTO.getNbHabitants());
 
         // Conversion du département DTO en entité
-        // Note: Seul l'ID est utilisé, le département complet sera résolu par le service
         if (villeDTO.getDepartement() != null) {
             Departement departement = new Departement();
-            // L'ID du département ne peut pas être défini ici - il sera résolu par le service
+            departement.setId(villeDTO.getDepartement().getId());
             departement.setCode(villeDTO.getDepartement().getCode());
             departement.setNom(villeDTO.getDepartement().getNom());
             ville.setDepartement(departement);

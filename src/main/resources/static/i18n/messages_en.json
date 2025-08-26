@@ -1,0 +1,38 @@
+{
+  "http.error": "HTTP error: {status}",
+  "error.initialLoad": "Failed to load data. Make sure the API is running.",
+  "departments.load.error": "Unable to load departments",
+  "departments.empty": "No departments found",
+  "departments.all": "All departments",
+  "departments.select": "-- Select a department --",
+  "departments.notFound": "Department not found",
+  "departments.edit.title": "Edit department",
+  "departments.delete.title": "Delete department",
+  "departments.delete.confirm": "Are you sure you want to delete department \"{name}\" ({code})?",
+  "departments.delete.blocked": "Department \"{name}\" ({code}) contains {count} city(ies). Cannot delete.",
+  "departments.delete.success": "Department deleted successfully",
+  "departments.selectedNotFound": "Selected department not found",
+
+  "cities.notFound": "City not found",
+  "cities.add.title": "Add a new city",
+  "cities.edit.title": "Edit city",
+  "cities.details.title": "City details {name}",
+  "cities.delete.title": "Delete city",
+  "cities.delete.confirm": "Are you sure you want to delete city \"{name}\" ({population} inhabitants)?",
+  "cities.delete.success": "City deleted successfully",
+  "cities.validation.nameMin": "City name must be at least 2 characters",
+  "cities.validation.populationMin": "Population must be greater than 0",
+
+  "label.name": "Name",
+  "label.population": "Population",
+  "label.department": "Department",
+
+  "delete.error": "Delete failed: {message}",
+  "load.error": "Load error",
+  "form.selectDepartment": "Please select a department",
+
+  "error.unexpected": "An unexpected error occurred",
+  "error.app": "An application error occurred",
+  "hello.success": "Hello: {msg}",
+  "hello.error": "Hello error: {message}"
+}

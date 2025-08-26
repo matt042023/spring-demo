@@ -1,11 +1,13 @@
 package fr.diginamic.hello.services;
 
-import fr.diginamic.hello.dao.DepartementDao;
-import fr.diginamic.hello.dao.VilleDao;
+import fr.diginamic.hello.exceptions.ExceptionFonctionnelle;
 import fr.diginamic.hello.models.Departement;
-import fr.diginamic.hello.models.Ville;
+import fr.diginamic.hello.repositories.DepartementRepository;
+import fr.diginamic.hello.repositories.VilleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,282 +16,390 @@ import java.util.Optional;
 
 /**
  * Service gérant la logique métier des départements
- * 
- * Cette classe implémente la couche service de l'architecture Spring MVC :
- * - Sépare la logique métier du contrôleur REST
- * - Gère les transactions avec @Transactional
- * - Effectue les validations métier avant persistance
- * - Fait le lien entre le contrôleur et la couche DAO
- * 
+ *
+ * Version mise à jour utilisant les Repositories Spring Data JPA
+ * au lieu des DAOs traditionnels.
+ *
  * @author Votre nom
- * @version 1.0
+ * @version 2.0 - Migration vers Spring Data JPA Repositories
  * @since 1.0
  */
-@Service // Annotation Spring pour marquer cette classe comme un service
-@Transactional // Toutes les méthodes sont transactionnelles par défaut
+@Service
+@Transactional
 public class DepartementService {
 
-    /**
-     * Injection de dépendance du DAO Departement pour l'accès aux données
-     * Spring injecte automatiquement une instance de DepartementDao
-     */
+    // ==================== INJECTION DES DÉPENDANCES ====================
+
     @Autowired
-    private DepartementDao departementDao;
+    private DepartementRepository departementRepository;
 
-    /**
-     * Injection de dépendance du DAO Ville pour les requêtes croisées
-     * Spring injecte automatiquement une instance de VilleDao
-     */
     @Autowired
-    private VilleDao villeDao;
+    private VilleRepository villeRepository;
 
-    // ========== OPÉRATIONS CRUD DE BASE ==========
-
-    /**
-     * Récupère tous les départements de la base de données
-     * 
-     * @return List<Departement> liste complète des départements
-     */
-    @Transactional(readOnly = true) // Optimisation pour les lectures seules
-    public List<Departement> extractDepartements() {
-        // Délégation directe au DAO pour récupérer tous les départements
-        return departementDao.findAll();
-    }
+    // ==================== MÉTHODES CRUD DE BASE ====================
 
     /**
-     * Récupère un département par son identifiant
-     * 
-     * @param idDepartement identifiant unique du département
-     * @return Departement département trouvé ou null si inexistant
+     * Récupère tous les départements
+     * @return List<Departement>
      */
     @Transactional(readOnly = true)
-    public Departement extractDepartement(Long idDepartement) {
-        // Recherche par ID avec Optional pour gérer l'absence
-        Optional<Departement> departement = departementDao.findById(idDepartement);
-        return departement.orElse(null); // Retourne null si non trouvé
+    public List<Departement> findAll() {
+        return departementRepository.findAll();
     }
 
     /**
-     * Récupère un département par son code
-     * 
-     * @param code code du département à rechercher
-     * @return Departement département trouvé ou null si inexistant
+     * Récupère tous les départements avec pagination
+     * @param pageable paramètres de pagination
+     * @return Page<Departement>
      */
     @Transactional(readOnly = true)
-    public Departement extractDepartementByCode(String code) {
-        // Recherche par code avec Optional pour gérer l'absence
-        Optional<Departement> departement = departementDao.findByCode(code);
-        return departement.orElse(null); // Retourne null si non trouvé
+    public Page<Departement> findAll(Pageable pageable) {
+        return departementRepository.findAll(pageable);
     }
 
     /**
-     * Insère un nouveau département après vérifications métier
-     * 
-     * @param departement nouveau département à insérer
-     * @return List<Departement> liste mise à jour des départements
-     * @throws IllegalArgumentException si le code ou nom existe déjà
+     * Récupère tous les départements avec pagination et tri personnalisé
+     * @param page numéro de la page
+     * @param size taille de la page
+     * @param sort type de tri (nom, code, population, nombreVilles)
+     * @return Page<Departement>
      */
-    public List<Departement> insertDepartement(Departement departement) {
-        // Vérification métier : le code doit être unique
-        if (departementDao.existsByCode(departement.getCode())) {
-            throw new IllegalArgumentException("Un département avec ce code existe déjà");
+    @Transactional(readOnly = true)
+    public Page<Departement> findAllWithSort(int page, int size, String sort) {
+        Pageable pageable = PageRequest.of(page, size);
+        
+        switch (sort.toLowerCase()) {
+            case "nom":
+                return departementRepository.findAllOrderByNom(pageable);
+            case "code":
+                return departementRepository.findAllOrderByCode(pageable);
+            case "population":
+                return departementRepository.findAllOrderByPopulation(pageable);
+            case "nombrevilles":
+                return departementRepository.findAllOrderByNombreVilles(pageable);
+            default:
+                // Par défaut, tri par nom
+                return departementRepository.findAllOrderByNom(pageable);
         }
-
-        // Vérification métier : le nom doit être unique (insensible à la casse)
-        if (departementDao.existsByNomIgnoreCase(departement.getNom())) {
-            throw new IllegalArgumentException("Un département avec ce nom existe déjà");
-        }
-
-        // Sauvegarde du nouveau département
-        departementDao.save(departement);
-
-        // Retourne la liste complète mise à jour
-        return departementDao.findAll();
     }
 
     /**
-     * Modifie un département existant après vérifications métier
-     * 
-     * @param idDepartement identifiant du département à modifier
-     * @param departementModifie nouvelles données du département
-     * @return List<Departement> liste mise à jour des départements
-     * @throws IllegalArgumentException si département inexistant ou code/nom déjà pris
+     * Recherche un département par son ID
+     * @param id identifiant du département
+     * @return Optional<Departement>
      */
-    public List<Departement> modifierDepartement(Long idDepartement, Departement departementModifie) {
-        // Vérification que le département à modifier existe
-        Optional<Departement> departementExistant = departementDao.findById(idDepartement);
-        if (departementExistant.isEmpty()) {
-            throw new IllegalArgumentException("Département non trouvé avec l'ID: " + idDepartement);
-        }
-
-        Departement departement = departementExistant.get();
-
-        // Vérification que le nouveau code n'est pas déjà pris par un autre département
-        if (!departement.getCode().equals(departementModifie.getCode()) &&
-                departementDao.existsByCode(departementModifie.getCode())) {
-            throw new IllegalArgumentException("Le code de département est déjà utilisé");
-        }
-
-        // Vérification que le nouveau nom n'est pas déjà pris par un autre département
-        if (!departement.getNom().equalsIgnoreCase(departementModifie.getNom()) &&
-                departementDao.existsByNomIgnoreCase(departementModifie.getNom())) {
-            throw new IllegalArgumentException("Le nom de département est déjà utilisé");
-        }
-
-        // Mise à jour des données (l'ID reste inchangé)
-        departement.setCode(departementModifie.getCode());
-        departement.setNom(departementModifie.getNom());
-
-        // Sauvegarde des modifications
-        departementDao.save(departement);
-
-        // Retourne la liste complète mise à jour
-        return departementDao.findAll();
+    @Transactional(readOnly = true)
+    public Optional<Departement> findById(Long id) {
+        return departementRepository.findById(id);
     }
 
     /**
-     * Supprime un département de la base de données
-     * 
-     * @param idDepartement identifiant du département à supprimer
-     * @return List<Departement> liste mise à jour des départements
-     * @throws IllegalArgumentException si le département n'existe pas ou contient des villes
+     * Recherche un département par son code
+     * @param code code du département
+     * @return Optional<Departement>
      */
-    public List<Departement> supprimerDepartement(Long idDepartement) {
-        // Vérification que le département à supprimer existe
-        if (!departementDao.existsById(idDepartement)) {
-            throw new IllegalArgumentException("Département non trouvé avec l'ID: " + idDepartement);
-        }
+    @Transactional(readOnly = true)
+    public Optional<Departement> findByCode(String code) {
+        return departementRepository.findByCode(code);
+    }
 
-        // Vérification que le département ne contient pas de villes
-        Long nombreVilles = departementDao.countVillesInDepartement(idDepartement);
+    /**
+     * Recherche un département par son nom
+     * @param nom nom du département
+     * @return Optional<Departement>
+     */
+    @Transactional(readOnly = true)
+    public Optional<Departement> findByNom(String nom) {
+        return departementRepository.findByNom(nom);
+    }
+
+    /**
+     * Recherche des départements par nom ou code contenant la chaîne de recherche
+     * @param searchTerm terme de recherche
+     * @return List<Departement>
+     */
+    @Transactional(readOnly = true)
+    public List<Departement> searchDepartements(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return List.of();
+        }
+        return departementRepository.findByNomContainingOrCodeContainingIgnoreCase(searchTerm.trim());
+    }
+
+    /**
+     * Sauvegarde ou met à jour un département
+     * @param departement département à sauvegarder
+     * @return Departement sauvegardé
+     */
+    public Departement save(Departement departement) {
+        validateDepartement(departement);
+        return departementRepository.save(departement);
+    }
+
+    /**
+     * Supprime un département par son ID
+     * @param id identifiant du département
+     */
+    public void deleteById(Long id) {
+        // Vérification que le département existe
+        Departement departement = departementRepository.findById(id)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", id));
+
+        // Vérification qu'il n'y a pas de villes associées
+        Long nombreVilles = villeRepository.countByDepartement(departement);
         if (nombreVilles > 0) {
-            throw new IllegalArgumentException("Impossible de supprimer un département qui contient des villes (" + nombreVilles + " ville(s))");
+            throw ExceptionFonctionnelle.suppressionImpossible("le département", 
+                    nombreVilles + " ville(s) y sont encore rattachées");
         }
 
-        // Suppression physique en base de données
-        departementDao.deleteById(idDepartement);
-
-        // Retourne la liste complète mise à jour
-        return departementDao.findAll();
+        departementRepository.deleteById(id);
     }
 
-    // ========== MÉTHODES DE RECHERCHE AVANCÉES ==========
+    // ==================== MÉTHODES DE RECHERCHE SPÉCIALISÉES ====================
 
     /**
-     * Recherche des départements par tranche de code
-     * 
-     * @param codePattern motif à rechercher dans les codes
-     * @return List<Departement> départements dont le code contient le motif
+     * Récupère les départements qui ont des villes
+     * @return List<Departement>
      */
     @Transactional(readOnly = true)
-    public List<Departement> findDepartementsParCode(String codePattern) {
-        // Utilisation d'une méthode de requête dérivée personnalisée
-        return departementDao.findDepartementsContainingNom(codePattern);
+    public List<Departement> findDepartementsWithVilles() {
+        return departementRepository.findDepartementsWithVilles();
     }
 
     /**
-     * Récupère tous les départements triés par code
-     * 
-     * @return List<Departement> départements triés par code croissant
+     * Récupère les départements qui ont un nom (non null)
+     * @return List<Departement>
      */
     @Transactional(readOnly = true)
-    public List<Departement> findDepartementsOrderByCode() {
-        // Utilisation d'une méthode de requête dérivée Spring Data JPA
-        return departementDao.findAllByOrderByCodeAsc();
+    public List<Departement> findDepartementsWithNom() {
+        return departementRepository.findByNomIsNotNull();
     }
 
     /**
-     * Récupère tous les départements triés par nom
-     * 
-     * @return List<Departement> départements triés par nom croissant
+     * Récupère les départements qui n'ont pas de nom (null)
+     * @return List<Departement>
      */
     @Transactional(readOnly = true)
-    public List<Departement> findDepartementsOrderByNom() {
-        // Utilisation d'une méthode de requête dérivée Spring Data JPA
-        return departementDao.findAllByOrderByNomAsc();
-    }
-
-    // ========== MÉTHODES SPÉCIFIQUES AUX VILLES ==========
-
-    /**
-     * Liste les n plus grandes villes d'un département
-     * 
-     * @param idDepartement identifiant du département
-     * @param limit nombre maximum de villes à retourner
-     * @return List<Ville> villes triées par population décroissante
-     * @throws IllegalArgumentException si le département n'existe pas
-     */
-    @Transactional(readOnly = true)
-    public List<Ville> getTopVillesByDepartement(Long idDepartement, int limit) {
-        // Vérification que le département existe
-        if (!departementDao.existsById(idDepartement)) {
-            throw new IllegalArgumentException("Département non trouvé avec l'ID: " + idDepartement);
-        }
-
-        // Utilisation d'une requête JPQL personnalisée avec limitation
-        return villeDao.findTopVillesByDepartement(idDepartement, limit);
+    public List<Departement> findDepartementsWithoutNom() {
+        return departementRepository.findByNomIsNull();
     }
 
     /**
-     * Liste les villes d'un département avec population dans une fourchette
-     * 
-     * @param idDepartement identifiant du département
-     * @param min population minimum (incluse)
-     * @param max population maximum (incluse)
-     * @return List<Ville> villes du département dans la fourchette
-     * @throws IllegalArgumentException si le département n'existe pas ou fourchette invalide
+     * Récupère les départements avec un nombre minimum de villes
+     * @param minNombreVilles nombre minimum de villes
+     * @return List<Departement>
      */
     @Transactional(readOnly = true)
-    public List<Ville> getVillesByDepartementAndPopulation(Long idDepartement, Integer min, Integer max) {
-        // Vérification que le département existe
-        if (!departementDao.existsById(idDepartement)) {
-            throw new IllegalArgumentException("Département non trouvé avec l'ID: " + idDepartement);
-        }
-
-        // Vérification de la cohérence de la fourchette
-        if (min != null && max != null && min > max) {
-            throw new IllegalArgumentException("La population minimum ne peut pas être supérieure à la population maximum");
-        }
-
-        // Utilisation d'une requête JPQL personnalisée avec conditions multiples
-        return villeDao.findVillesByDepartementAndPopulation(idDepartement, min, max);
+    public List<Departement> findDepartementsWithMinVilles(int minNombreVilles) {
+        return departementRepository.findDepartementsWithMinVilles(minNombreVilles);
     }
 
-    // ========== MÉTHODES D'ANALYSE ==========
+    /**
+     * Récupère les départements avec une population minimum
+     * @param minPopulation population minimum
+     * @return List<Departement>
+     */
+    @Transactional(readOnly = true)
+    public List<Departement> findDepartementsWithMinPopulation(Long minPopulation) {
+        return departementRepository.findDepartementsWithMinPopulation(minPopulation);
+    }
+
+    // ==================== MÉTHODES PAR TYPE DE DÉPARTEMENT ====================
+
+    /**
+     * Récupère les départements métropolitains
+     * @return List<Departement>
+     */
+    @Transactional(readOnly = true)
+    public List<Departement> findDepartementsMetropolitains() {
+        return departementRepository.findDepartementsMetropolitains();
+    }
+
+    /**
+     * Récupère les départements d'outre-mer
+     * @return List<Departement>
+     */
+    @Transactional(readOnly = true)
+    public List<Departement> findDepartementsOutreMer() {
+        return departementRepository.findDepartementsOutreMer();
+    }
+
+    /**
+     * Récupère les départements corses
+     * @return List<Departement>
+     */
+    @Transactional(readOnly = true)
+    public List<Departement> findDepartementsCorse() {
+        return departementRepository.findDepartementsCorse();
+    }
+
+    /**
+     * Récupère les départements dont le code commence par un préfixe
+     * @param prefix préfixe du code
+     * @return List<Departement>
+     */
+    @Transactional(readOnly = true)
+    public List<Departement> findByCodeStartingWith(String prefix) {
+        return departementRepository.findByCodeStartingWith(prefix);
+    }
+
+    // ==================== MÉTHODES STATISTIQUES ====================
+
+    /**
+     * Compte le nombre total de départements
+     * @return nombre de départements
+     */
+    @Transactional(readOnly = true)
+    public long count() {
+        return departementRepository.count();
+    }
+
+    /**
+     * Compte le nombre de villes d'un département
+     * @param id identifiant du département
+     * @return nombre de villes
+     */
+    @Transactional(readOnly = true)
+    public Long countVillesById(Long id) {
+        Departement departement = departementRepository.findById(id)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", id));
+        return villeRepository.countByDepartement(departement);
+    }
 
     /**
      * Calcule la population totale d'un département
-     * 
-     * @param idDepartement identifiant du département
-     * @return Long population totale du département
-     * @throws IllegalArgumentException si le département n'existe pas
+     * @param id identifiant du département
+     * @return population totale
      */
     @Transactional(readOnly = true)
-    public Long getPopulationTotaleDepartement(Long idDepartement) {
-        // Vérification que le département existe
-        if (!departementDao.existsById(idDepartement)) {
-            throw new IllegalArgumentException("Département non trouvé avec l'ID: " + idDepartement);
-        }
-
-        // Utilisation d'une requête JPQL avec fonction d'agrégation
-        return departementDao.getPopulationTotaleDepartement(idDepartement);
+    public Long getTotalPopulationById(Long id) {
+        Departement departement = departementRepository.findById(id)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", id));
+        return villeRepository.sumPopulationByDepartement(departement);
     }
 
     /**
-     * Compte le nombre de villes dans un département
-     * 
-     * @param idDepartement identifiant du département
-     * @return Long nombre de villes dans le département
-     * @throws IllegalArgumentException si le département n'existe pas
+     * Vérifie si un département existe par son code
+     * @param code code du département
+     * @return true si le département existe
      */
     @Transactional(readOnly = true)
-    public Long getNombreVillesDepartement(Long idDepartement) {
-        // Vérification que le département existe
-        if (!departementDao.existsById(idDepartement)) {
-            throw new IllegalArgumentException("Département non trouvé avec l'ID: " + idDepartement);
+    public boolean existsByCode(String code) {
+        return departementRepository.existsByCode(code);
+    }
+
+    // ==================== MÉTHODES DE GESTION DES NOMS ====================
+
+    /**
+     * Met à jour le nom d'un département
+     * @param code code du département
+     * @param nom nouveau nom
+     * @return Departement mis à jour
+     */
+    public Departement updateNom(String code, String nom) {
+        Departement departement = departementRepository.findByCode(code)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", code));
+
+        departement.setNom(nom);
+        return departementRepository.save(departement);
+    }
+
+    /**
+     * Met à jour tous les noms de départements vides
+     * Méthode utile pour remplir les noms manquants du fichier SQL
+     */
+    public void updateNomsManquants() {
+        List<Departement> departementsWithoutNom = departementRepository.findByNomIsNull();
+
+        for (Departement dept : departementsWithoutNom) {
+            String nom = getNomDepartementParCode(dept.getCode());
+            if (nom != null) {
+                dept.setNom(nom);
+                departementRepository.save(dept);
+            }
+        }
+    }
+
+    // ==================== MÉTHODES DE VALIDATION ====================
+
+    /**
+     * Valide les données d'un département
+     * @param departement département à valider
+     */
+    private void validateDepartement(Departement departement) {
+        if (departement == null) {
+            throw ExceptionFonctionnelle.donneesInvalides("Le département ne peut pas être null");
         }
 
-        // Utilisation d'une requête JPQL avec fonction COUNT
-        return departementDao.countVillesInDepartement(idDepartement);
+        if (departement.getCode() == null || departement.getCode().trim().isEmpty()) {
+            throw ExceptionFonctionnelle.donneesInvalides("Le code du département est obligatoire");
+        }
+
+        // Validation du format du code
+        String code = departement.getCode().toUpperCase();
+        if (!isValidCodeDepartement(code)) {
+            throw new ExceptionFonctionnelle(
+                "CONSTRAINT_VIOLATION",
+                "Le code département '%s' n'est pas valide. Utilisez un code français valide: 01-95 (sauf 20), 2A, 2B, ou 971-976",
+                code
+            );
+        }
+
+        // Vérification de l'unicité du code (sauf pour les mises à jour)
+        if (departement.getId() == null) { // Nouveau département
+            if (departementRepository.existsByCode(code)) {
+                throw ExceptionFonctionnelle.ressourceDejaExistante("Département", "code", code);
+            }
+        }
+    }
+
+    /**
+     * Valide le format d'un code département
+     * @param code code à valider
+     * @return true si le format est valide
+     */
+    private boolean isValidCodeDepartement(String code) {
+        // Codes métropolitains : 01-19, 21-95 (sauf 20)
+        // Codes Corse : 2A, 2B
+        // Codes DOM-TOM : 971, 972, 973, 974, 975, 976, 977, 978
+        return code.matches("^(0[1-9]|[1-8][0-9]|9[0-5]|2[AB]|97[1-8])$");
+    }
+
+    // ==================== MÉTHODES UTILITAIRES ====================
+
+    /**
+     * Récupère le nom complet d'un département par son code
+     * @param code code du département
+     * @return nom du département ou null
+     */
+    private String getNomDepartementParCode(String code) {
+        // Map des codes vers noms (simplifié pour l'exemple)
+        return switch (code) {
+            case "01" -> "Ain";
+            case "02" -> "Aisne";
+            case "03" -> "Allier";
+            case "13" -> "Bouches-du-Rhône";
+            case "34" -> "Hérault";
+            case "75" -> "Paris";
+            case "2A" -> "Corse-du-Sud";
+            case "2B" -> "Haute-Corse";
+            case "971" -> "Guadeloupe";
+            case "972" -> "Martinique";
+            case "973" -> "Guyane";
+            case "974" -> "La Réunion";
+            // Ajouter tous les autres codes selon vos besoins
+            default -> null;
+        };
+    }
+
+    /**
+     * Crée un nouveau département
+     * @param code code du département
+     * @param nom nom du département (optionnel)
+     * @return Departement créé
+     */
+    public Departement createDepartement(String code, String nom) {
+        Departement departement = new Departement(code, nom);
+        return save(departement);
     }
 }

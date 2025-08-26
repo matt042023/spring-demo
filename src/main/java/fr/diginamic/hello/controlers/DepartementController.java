@@ -7,319 +7,483 @@ import fr.diginamic.hello.mappers.VilleMapper;
 import fr.diginamic.hello.models.Departement;
 import fr.diginamic.hello.models.Ville;
 import fr.diginamic.hello.services.DepartementService;
+import fr.diginamic.hello.services.VilleService;
 import jakarta.validation.Valid;
+import fr.diginamic.hello.exceptions.ExceptionFonctionnelle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
- * Contrôleur REST pour gérer les départements - CRUD complet avec validation
- * 
- * Ce contrôleur expose les endpoints REST pour la gestion des départements :
- * - Opérations CRUD de base (Create, Read, Update, Delete)
- * - Endpoints spécialisés pour les villes d'un département
- * - Gestion complète des erreurs avec ResponseEntity
- * - Validation automatique des données avec @Valid
- * 
+ * Contrôleur REST pour gérer les départements - Version étendue avec Repositories
+ *
+ * Version mise à jour utilisant les nouveaux repositories et services
+ * Compatible avec le style du VilleController.
+ *
+ * Nouvelles fonctionnalités :
+ * - Recherches par type de département (métropolitain, outre-mer, Corse)
+ * - Statistiques avancées
+ * - Gestion des noms de départements
+ * - Routes cohérentes avec VilleController
+ *
  * @RestController = @Controller + @ResponseBody
  * Toutes les méthodes renvoient directement des données JSON
- * 
+ *
  * @author Votre nom
- * @version 1.0
+ * @version 2.0 - Migration vers Repositories
  * @since 1.0
  */
 @RestController
 @RequestMapping("/departements") // URL de base pour toutes les méthodes
 public class DepartementController {
 
-    /**
-     * Injection de dépendance du service Departement
-     * Spring injecte automatiquement une instance de DepartementService
-     */
+    // ==================== INJECTION DES DÉPENDANCES ====================
+
     @Autowired
     private DepartementService departementService;
 
-    /**
-     * Injection de dépendance du mapper Departement pour la conversion entité/DTO
-     * Spring injecte automatiquement une instance de DepartementMapper
-     */
+    @Autowired
+    private VilleService villeService;
+
     @Autowired
     private DepartementMapper departementMapper;
 
-    /**
-     * Injection de dépendance du mapper Ville pour la conversion entité/DTO
-     * Spring injecte automatiquement une instance de VilleMapper
-     */
     @Autowired
     private VilleMapper villeMapper;
 
-    // ========== OPÉRATIONS DE LECTURE (READ) ==========
+    // ==================== ROUTES CRUD DE BASE ====================
 
     /**
-     * GET /departements - Récupère la liste de tous les départements
-     * @return List<Departement> Liste complète des départements
+     * GET /departements - Récupère tous les départements avec pagination
+     * @param page numéro de la page (défaut: 0)
+     * @param size taille de la page (défaut: 20)
+     * @param sort tri (défaut: nom) - Valeurs possibles: nom, code, population, nombreVilles
+     * @return Page<DepartementDTO> Page des départements
      */
     @GetMapping
-    public List<Departement> getAllDepartements() {
-        // Délégation au service pour récupérer tous les départements
-        return departementService.extractDepartements();
+    public Page<DepartementDTO> getAllDepartements(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "nom") String sort) {
+        
+        Page<Departement> departements = departementService.findAllWithSort(page, size, sort);
+        return departements.map(departementMapper::toDTO);
     }
 
     /**
      * GET /departements/{id} - Récupère un département par son ID
-     * @param id identifiant unique du département
-     * @return ResponseEntity<Departement> département trouvé ou 404 si non trouvé
+     * @param id identifiant du département
+     * @return DepartementDTO
      */
     @GetMapping("/{id}")
-    public ResponseEntity<DepartementDTO> getDepartementById(@PathVariable Long id) {
-        // Recherche du département par ID via le service
-        Departement departement = departementService.extractDepartement(id);
-
-        // Retour du département si trouvé, sinon erreur 404
-        if (departement != null) {
-            DepartementDTO departementDTO = departementMapper.toDTO(departement);
-            return ResponseEntity.ok(departementDTO);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public DepartementDTO getDepartementById(@PathVariable Long id) {
+        Optional<Departement> departement = departementService.findById(id);
+        return departement.map(departementMapper::toDTO)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", id));
     }
 
     /**
      * GET /departements/code/{code} - Récupère un département par son code
-     * @param code code du département à rechercher (ex: \"75\", \"13\")
-     * @return ResponseEntity<Departement> département trouvé ou 404 si non trouvé
+     * @param code code du département (ex: "75", "13", "2A")
+     * @return DepartementDTO
      */
     @GetMapping("/code/{code}")
-    public ResponseEntity<DepartementDTO> getDepartementByCode(@PathVariable String code) {
-        // Recherche du département par code via le service
-        Departement departement = departementService.extractDepartementByCode(code);
-
-        // Retour du département si trouvé, sinon erreur 404
-        if (departement != null) {
-            DepartementDTO departementDTO = departementMapper.toDTO(departement);
-            return ResponseEntity.ok(departementDTO);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public DepartementDTO getDepartementByCode(@PathVariable String code) {
+        Optional<Departement> departement = departementService.findByCode(code);
+        return departement.map(departementMapper::toDTO)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", code));
     }
 
     /**
-     * GET /departements/ordered-by-code - Récupère tous les départements triés par code
-     * @return List<Departement> départements triés par code croissant
-     */
-    @GetMapping("/ordered-by-code")
-    public List<DepartementDTO> getDepartementsOrderedByCode() {
-        // Délégation au service pour récupérer les départements triés par code
-        List<Departement> departements = departementService.findDepartementsOrderByCode();
-        return departementMapper.toDTOList(departements);
-    }
-
-    /**
-     * GET /departements/ordered-by-nom - Récupère tous les départements triés par nom
-     * @return List<Departement> départements triés par nom croissant
-     */
-    @GetMapping("/ordered-by-nom")
-    public List<DepartementDTO> getDepartementsOrderedByNom() {
-        // Délégation au service pour récupérer les départements triés par nom
-        List<Departement> departements = departementService.findDepartementsOrderByNom();
-        return departementMapper.toDTOList(departements);
-    }
-
-    // ========== OPÉRATION DE CRÉATION (CREATE) ==========
-
-    /**
-     * POST /departements - Crée un nouveau département avec validation
-     * @param nouveauDepartement données du nouveau département à créer
-     * @param bindingResult résultat de la validation des données
-     * @return ResponseEntity<String> message de succès ou d'erreur
+     * POST /departements - Crée un nouveau département
+     * @param departementDTO données du département
+     * @return DepartementDTO
      */
     @PostMapping
-    public ResponseEntity<?> createDepartement(@Valid @RequestBody DepartementDTO nouveauDepartementDTO,
-                                                    BindingResult bindingResult) {
-        // Vérification des erreurs de validation
-        if (bindingResult.hasErrors()) {
-            StringBuilder erreurs = new StringBuilder("Erreur de validation : ");
-            bindingResult.getAllErrors().forEach(error ->
-                    erreurs.append(error.getDefaultMessage()).append(";")
-            );
-            return ResponseEntity.badRequest().body(erreurs.toString());
-        }
-
-        try {
-            // Conversion DTO -> Entité
-            Departement nouveauDepartement = departementMapper.toEntity(nouveauDepartementDTO);
-            // Délégation au service pour l'insertion avec vérifications métier
-            List<Departement> departementsAJour = departementService.insertDepartement(nouveauDepartement);
-            
-            // Retour du département créé en DTO
-            Departement departementCree = departementsAJour.stream()
-                    .filter(d -> d.getCode().equals(nouveauDepartement.getCode()))
-                    .findFirst()
-                    .orElse(nouveauDepartement);
-            
-            DepartementDTO departementCreeDTO = departementMapper.toDTO(departementCree);
-            return ResponseEntity.ok(departementCreeDTO);
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (code ou nom déjà existant, etc.)
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public DepartementDTO createDepartement(@Valid @RequestBody DepartementDTO departementDTO) {
+        Departement departement = departementMapper.toEntity(departementDTO);
+        Departement savedDepartement = departementService.save(departement);
+        return departementMapper.toDTO(savedDepartement);
     }
-
-    // ========== OPÉRATION DE MISE À JOUR (UPDATE) ==========
 
     /**
-     * PUT /departements/{id} - Met à jour un département existant avec validation
-     * @param id identifiant du département à modifier
-     * @param departementModifie nouvelles données du département
-     * @param bindingResult résultat de la validation
-     * @return ResponseEntity<String> message de succès ou d'erreur
+     * PUT /departements/{id} - Met à jour un département
+     * @param id identifiant du département
+     * @param departementDTO nouvelles données
+     * @return DepartementDTO
      */
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateDepartement(@PathVariable Long id,
-                                                    @Valid @RequestBody Departement departementModifie,
-                                                    BindingResult bindingResult) {
-
-        // Vérification des erreurs de validation
-        if (bindingResult.hasErrors()) {
-            StringBuilder erreurs = new StringBuilder("Erreurs de validation : ");
-            bindingResult.getAllErrors().forEach(error ->
-                    erreurs.append(error.getDefaultMessage()).append("; ")
-            );
-            return ResponseEntity.badRequest().body(erreurs.toString());
+    public DepartementDTO updateDepartement(@PathVariable Long id, @Valid @RequestBody DepartementDTO departementDTO) {
+        // Vérifier que le département existe
+        if (!departementService.findById(id).isPresent()) {
+            throw ExceptionFonctionnelle.ressourceNonTrouvee("Département", id);
         }
 
-        try {
-            // Délégation au service pour la logique métier de modification
-            List<Departement> departementsAJour = departementService.modifierDepartement(id, departementModifie);
-            return ResponseEntity.ok("Département mis à jour avec succès");
-
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (département inexistant, code/nom déjà pris, etc.)
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        Departement departement = departementMapper.toEntity(departementDTO);
+        departement.setId(id); // S'assurer que l'ID est correct
+        Departement updatedDepartement = departementService.save(departement);
+        return departementMapper.toDTO(updatedDepartement);
     }
-
-    // ========== OPÉRATION DE SUPPRESSION (DELETE) ==========
 
     /**
      * DELETE /departements/{id} - Supprime un département
-     * @param id identifiant du département à supprimer
-     * @return ResponseEntity<String> message de succès ou d'erreur
+     * @param id identifiant du département
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteDepartement(@PathVariable Long id) {
-
-        try {
-            // Délégation au service pour la logique métier de suppression
-            List<Departement> departementsAJour = departementService.supprimerDepartement(id);
-            return ResponseEntity.ok("Département supprimé avec succès");
-
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (département inexistant ou contenant des villes)
-            return ResponseEntity.badRequest().body(e.getMessage());
+    public void deleteDepartement(@PathVariable Long id) {
+        // Vérifier que le département existe avant suppression
+        if (!departementService.findById(id).isPresent()) {
+            throw ExceptionFonctionnelle.ressourceNonTrouvee("Département", id);
         }
-    }
-
-    // ========== ENDPOINTS SPÉCIALISÉS POUR LES VILLES ==========
-
-    /**
-     * GET /departements/{id}/top-villes/{limit} - Liste les n plus grandes villes d'un département
-     * @param id identifiant du département
-     * @param limit nombre maximum de villes à retourner
-     * @return ResponseEntity<List<Ville>> villes triées par population décroissante ou erreur
-     */
-    @GetMapping("/{id}/top-villes/{limit}")
-    public ResponseEntity<List<VilleDTO>> getTopVillesByDepartement(@PathVariable Long id, 
-                                                                @PathVariable int limit) {
-        try {
-            // Validation du paramètre limit
-            if (limit <= 0) {
-                return ResponseEntity.badRequest().body(null);
-            }
-
-            // Délégation au service pour récupérer les plus grandes villes
-            List<Ville> topVilles = departementService.getTopVillesByDepartement(id, limit);
-            List<VilleDTO> topVillesDTO = villeMapper.toDTOList(topVilles);
-            return ResponseEntity.ok(topVillesDTO);
-
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (département inexistant)
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
-    /**
-     * GET /departements/{id}/villes-population?min={min}&max={max} - 
-     * Liste les villes d'un département avec population dans une fourchette
-     * @param id identifiant du département
-     * @param min population minimum (optionnel)
-     * @param max population maximum (optionnel)
-     * @return ResponseEntity<List<Ville>> villes dans la fourchette ou erreur
-     */
-    @GetMapping("/{id}/villes-population")
-    public ResponseEntity<List<VilleDTO>> getVillesByDepartementAndPopulation(
-            @PathVariable Long id,
-            @RequestParam(required = false) Integer min,
-            @RequestParam(required = false) Integer max) {
         
-        try {
-            // Validation des paramètres de fourchette
-            if (min != null && min < 0) {
-                return ResponseEntity.badRequest().body(null);
-            }
-            if (max != null && max < 0) {
-                return ResponseEntity.badRequest().body(null);
-            }
-
-            // Délégation au service pour récupérer les villes dans la fourchette
-            List<Ville> villes = departementService.getVillesByDepartementAndPopulation(id, min, max);
-            List<VilleDTO> villesDTO = villeMapper.toDTOList(villes);
-            return ResponseEntity.ok(villesDTO);
-
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (département inexistant, fourchette invalide)
-            return ResponseEntity.badRequest().body(null);
-        }
+        departementService.deleteById(id);
     }
 
-    // ========== ENDPOINTS D'ANALYSE ==========
+    // ==================== ROUTES DE RECHERCHE SPÉCIALISÉES ====================
 
     /**
-     * GET /departements/{id}/population-totale - Récupère la population totale d'un département
-     * @param id identifiant du département
-     * @return ResponseEntity<Long> population totale ou erreur
+     * GET /departements/search/nom?nom=Paris - Recherche par nom
+     * @param nom nom du département
+     * @return DepartementDTO
      */
-    @GetMapping("/{id}/population-totale")
-    public ResponseEntity<Long> getPopulationTotaleDepartement(@PathVariable Long id) {
-        try {
-            // Délégation au service pour calculer la population totale
-            Long populationTotale = departementService.getPopulationTotaleDepartement(id);
-            return ResponseEntity.ok(populationTotale);
-
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (département inexistant)
-            return ResponseEntity.badRequest().body(null);
-        }
+    @GetMapping("/search/nom")
+    public DepartementDTO findByNom(@RequestParam String nom) {
+        Optional<Departement> departement = departementService.findByNom(nom);
+        return departement.map(departementMapper::toDTO)
+                .orElseThrow(() -> ExceptionFonctionnelle.ressourceNonTrouvee("Département", nom));
     }
 
     /**
-     * GET /departements/{id}/nombre-villes - Récupère le nombre de villes d'un département
-     * @param id identifiant du département
-     * @return ResponseEntity<Long> nombre de villes ou erreur
+     * GET /departements/search?q=herault - Recherche par nom ou code (partielle, insensible à la casse)
+     * @param q terme de recherche
+     * @return List<DepartementDTO>
      */
-    @GetMapping("/{id}/nombre-villes")
-    public ResponseEntity<Long> getNombreVillesDepartement(@PathVariable Long id) {
-        try {
-            // Délégation au service pour compter les villes
-            Long nombreVilles = departementService.getNombreVillesDepartement(id);
-            return ResponseEntity.ok(nombreVilles);
-
-        } catch (IllegalArgumentException e) {
-            // Gestion des erreurs métier (département inexistant)
-            return ResponseEntity.badRequest().body(null);
-        }
+    @GetMapping("/search")
+    public List<DepartementDTO> searchDepartements(@RequestParam String q) {
+        List<Departement> departements = departementService.searchDepartements(q);
+        return departementMapper.toDTOList(departements);
     }
+
+    /**
+     * GET /departements/avec-nom - Départements qui ont un nom (non null)
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/avec-nom")
+    public List<DepartementDTO> getDepartementsWithNom() {
+        List<Departement> departements = departementService.findDepartementsWithNom();
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/sans-nom - Départements sans nom (nom = null)
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/sans-nom")
+    public List<DepartementDTO> getDepartementsWithoutNom() {
+        List<Departement> departements = departementService.findDepartementsWithoutNom();
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/avec-villes - Départements qui ont des villes
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/avec-villes")
+    public List<DepartementDTO> getDepartementsWithVilles() {
+        List<Departement> departements = departementService.findDepartementsWithVilles();
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/min-villes?min=5 - Départements avec au moins N villes
+     * @param min nombre minimum de villes
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/min-villes")
+    public List<DepartementDTO> getDepartementsWithMinVilles(@RequestParam int min) {
+        List<Departement> departements = departementService.findDepartementsWithMinVilles(min);
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/min-population?min=1000000 - Départements avec population minimum
+     * @param min population minimum totale
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/min-population")
+    public List<DepartementDTO> getDepartementsWithMinPopulation(@RequestParam Long min) {
+        List<Departement> departements = departementService.findDepartementsWithMinPopulation(min);
+        return departementMapper.toDTOList(departements);
+    }
+
+    // ==================== ROUTES PAR TYPE DE DÉPARTEMENT ====================
+
+    /**
+     * GET /departements/metropolitains - Départements métropolitains
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/metropolitains")
+    public List<DepartementDTO> getDepartementsMetropolitains() {
+        List<Departement> departements = departementService.findDepartementsMetropolitains();
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/outre-mer - Départements d'outre-mer
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/outre-mer")
+    public List<DepartementDTO> getDepartementsOutreMer() {
+        List<Departement> departements = departementService.findDepartementsOutreMer();
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/corse - Départements corses (2A, 2B)
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/corse")
+    public List<DepartementDTO> getDepartementsCorse() {
+        List<Departement> departements = departementService.findDepartementsCorse();
+        return departementMapper.toDTOList(departements);
+    }
+
+    /**
+     * GET /departements/code-commence?prefix=97 - Départements dont le code commence par...
+     * @param prefix préfixe du code
+     * @return List<DepartementDTO>
+     */
+    @GetMapping("/code-commence")
+    public List<DepartementDTO> findByCodeStartingWith(@RequestParam String prefix) {
+        List<Departement> departements = departementService.findByCodeStartingWith(prefix);
+        return departementMapper.toDTOList(departements);
+    }
+
+    // ==================== ROUTES DES VILLES PAR DÉPARTEMENT ====================
+
+    /**
+     * GET /departements/{id}/villes - Toutes les villes d'un département
+     * @param id identifiant du département
+     * @return List<VilleDTO>
+     */
+    @GetMapping("/{id}/villes")
+    public List<VilleDTO> getVillesByDepartement(@PathVariable Long id) {
+        Optional<Departement> departement = departementService.findById(id);
+        if (departement.isEmpty()) {
+            throw ExceptionFonctionnelle.ressourceNonTrouvee("Département", id);
+        }
+
+        List<Ville> villes = villeService.exportVillesByDepartement(departement.get().getCode());
+        return villeMapper.toDTOList(villes);
+    }
+
+    /**
+     * GET /departements/code/{code}/villes - Toutes les villes d'un département par code
+     * @param code code du département
+     * @return List<VilleDTO>
+     */
+    @GetMapping("/code/{code}/villes")
+    public List<VilleDTO> getVillesByDepartementCode(@PathVariable String code) {
+        List<Ville> villes = villeService.exportVillesByDepartement(code);
+        return villeMapper.toDTOList(villes);
+    }
+
+    /**
+     * GET /departements/code/{code}/villes/top?n=10 - Top N villes d'un département
+     * @param code code du département
+     * @param n nombre de villes (défaut: 10)
+     * @return List<VilleDTO>
+     */
+    @GetMapping("/code/{code}/villes/top")
+    public List<VilleDTO> getTopVillesByDepartement(
+            @PathVariable String code,
+            @RequestParam(defaultValue = "10") int n) {
+        List<Ville> villes = villeService.findTopNVillesByDepartement(code, n);
+        return villeMapper.toDTOList(villes);
+    }
+
+    /**
+     * GET /departements/code/{code}/villes/population?min=10000 - Villes avec population min
+     * @param code code du département
+     * @param min population minimum (optionnel)
+     * @return List<VilleDTO>
+     */
+    @GetMapping("/code/{code}/villes/population")
+    public List<VilleDTO> getVillesByDepartementAndPopulation(
+            @PathVariable String code,
+            @RequestParam(required = false) Integer min) {
+        List<Ville> villes;
+        if (min != null) {
+            villes = villeService.findByDepartementAndMinPopulation(code, min);
+        } else {
+            villes = villeService.exportVillesByDepartement(code);
+        }
+        return villeMapper.toDTOList(villes);
+    }
+
+    /**
+     * GET /departements/code/{code}/villes/population-plage?min=10000&max=100000 - Villes dans plage population
+     * @param code code du département
+     * @param min population minimum
+     * @param max population maximum
+     * @return List<VilleDTO>
+     */
+    @GetMapping("/code/{code}/villes/population-plage")
+    public List<VilleDTO> getVillesByDepartementAndPopulationRange(
+            @PathVariable String code,
+            @RequestParam Integer min,
+            @RequestParam Integer max) {
+        List<Ville> villes = villeService.findByDepartementAndPopulationRange(code, min, max);
+        return villeMapper.toDTOList(villes);
+    }
+
+    // ==================== ROUTES STATISTIQUES ====================
+
+    /**
+     * GET /departements/count - Nombre total de départements
+     * @return nombre de départements
+     */
+    @GetMapping("/count")
+    public long getTotalCount() {
+        return departementService.count();
+    }
+
+
+    /**
+     * GET /departements/code/{code}/stats - Statistiques détaillées d'un département
+     * @param code code du département
+     * @return Map avec les statistiques
+     */
+    @GetMapping("/code/{code}/stats")
+    public Map<String, Object> getStatsByCode(@PathVariable String code) {
+        Optional<Departement> departement = departementService.findByCode(code);
+        if (departement.isEmpty()) {
+            throw ExceptionFonctionnelle.ressourceNonTrouvee("Département", code);
+        }
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("code", departement.get().getCode());
+        stats.put("nom", departement.get().getNom());
+        stats.put("nombreVilles", departementService.countVillesById(departement.get().getId()));
+        stats.put("populationTotale", departementService.getTotalPopulationById(departement.get().getId()));
+        
+        return stats;
+    }
+
+    /**
+     * GET /departements/code/{code}/population-totale - Population totale d'un département
+     * @param code code du département
+     * @return Long
+     */
+    @GetMapping("/code/{code}/population-totale")
+    public Long getPopulationTotalByCode(@PathVariable String code) {
+        Optional<Departement> departement = departementService.findByCode(code);
+        if (departement.isEmpty()) {
+            throw ExceptionFonctionnelle.ressourceNonTrouvee("Département", code);
+        }
+
+        return departementService.getTotalPopulationById(departement.get().getId());
+    }
+
+    /**
+     * GET /departements/code/{code}/nombre-villes - Nombre de villes d'un département
+     * @param code code du département
+     * @return Long
+     */
+    @GetMapping("/code/{code}/nombre-villes")
+    public Long getNombreVillesByCode(@PathVariable String code) {
+        Optional<Departement> departement = departementService.findByCode(code);
+        if (departement.isEmpty()) {
+            throw ExceptionFonctionnelle.ressourceNonTrouvee("Département", code);
+        }
+
+        return departementService.countVillesById(departement.get().getId());
+    }
+
+    // ==================== ROUTES DE GESTION AVANCÉE ====================
+
+    /**
+     * POST /departements/creation-rapide - Création rapide d'un département
+     * @param code code du département
+     * @param nom nom du département (optionnel)
+     * @return DepartementDTO
+     */
+    @PostMapping("/creation-rapide")
+    public DepartementDTO createDepartementRapide(
+            @RequestParam String code,
+            @RequestParam(required = false) String nom) {
+        Departement departement = departementService.createDepartement(code, nom);
+        return departementMapper.toDTO(departement);
+    }
+
+    /**
+     * PUT /departements/code/{code}/nom - Met à jour le nom d'un département
+     * @param code code du département
+     * @param nom nouveau nom
+     * @return DepartementDTO
+     */
+    @PutMapping("/code/{code}/nom")
+    public DepartementDTO updateNomDepartement(@PathVariable String code, @RequestParam String nom) {
+        Departement departement = departementService.updateNom(code, nom);
+        return departementMapper.toDTO(departement);
+    }
+
+    /**
+     * PUT /departements/update-noms-manquants - Met à jour tous les noms manquants
+     * @return String
+     */
+    @PutMapping("/update-noms-manquants")
+    public String updateNomsManquants() {
+        departementService.updateNomsManquants();
+        return "Noms des départements mis à jour avec succès";
+    }
+
+    /**
+     * GET /departements/exists/code/{code} - Vérifie si un département existe
+     * @param code code du département
+     * @return boolean
+     */
+    @GetMapping("/exists/code/{code}")
+    public boolean existsByCode(@PathVariable String code) {
+        return departementService.existsByCode(code);
+    }
+
+    // ==================== CLASSES INTERNES POUR RÉPONSES ====================
+
+    /**
+     * Classe pour encapsuler les statistiques d'un département
+     */
+    public static class DepartementStatsResponse {
+        private String code;
+        private String nom;
+        private Long nombreVilles;
+        private Long populationTotale;
+
+        public DepartementStatsResponse(String code, String nom, Long nombreVilles, Long populationTotale) {
+            this.code = code;
+            this.nom = nom;
+            this.nombreVilles = nombreVilles;
+            this.populationTotale = populationTotale;
+        }
+
+        // Getters
+        public String getCode() { return code; }
+        public String getNom() { return nom; }
+        public Long getNombreVilles() { return nombreVilles; }
+        public Long getPopulationTotale() { return populationTotale; }
+    }
+
+    // ==================== GESTION DES ERREURS ====================
+
+    /**
+     * Gestion des erreurs de validation
+     */
 }

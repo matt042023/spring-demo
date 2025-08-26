@@ -8,60 +8,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Classe représentant un département français avec validation des données
- * 
- * Cette entité JPA gère la relation One-to-Many avec les villes :
- * - Un département peut contenir plusieurs villes
- * - Une ville appartient à un seul département
- * - Utilisation de @JsonManagedReference pour éviter les références circulaires
- * 
- * @author Votre nom
- * @version 1.0
- * @since 1.0
+ * Classe représentant un département français
+ * Mapping JPA compatible avec le fichier tp-spring-07-recensement.sql
+ *
+ * Structure SQL correspondante :
+ * - Table : departement
+ * - Colonnes : id, code, nom
+ *
+ * Note : Dans le fichier SQL, la colonne 'nom' est NULL,
+ * mais on la garde nullable pour permettre d'ajouter les noms plus tard
  */
 @Entity
 @Table(name = "departement")
 public class Departement {
 
     /**
-     * ID généré automatiquement - clé primaire
+     * ID du département - correspond à la colonne "id" du SQL
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     /**
-     * Code du département (ex: "75", "13", "2A")
+     * Code du département - correspond à la colonne "code" du SQL
+     * Ex: "75", "13", "2A", "974"
      */
-    @NotNull(message = "Le code du département ne peut pas être null")
-    @Size(min = 2, max = 3, message = "Le code du département doit contenir entre 2 et 3 caractères")
-    @Column(name = "code", unique = true)
+    @NotNull(message = "{departement.code.notnull}")
+    @Size(min = 2, max = 3, message = "{departement.code.size}")
+    @Column(name = "code", unique = true, nullable = false)
     private String code;
 
     /**
-     * Nom du département (ex: "Paris", "Bouches-du-Rhône")
+     * Nom du département - correspond à la colonne "nom" du SQL
+     * Dans le fichier SQL original, cette colonne est NULL, donc on la rend nullable
      */
-    @NotNull(message = "Le nom du département ne peut pas être null")
-    @Size(min = 2, max = 100, message = "Le nom du département doit contenir entre 2 et 100 caractères")
-    @Column(name = "nom")
+    @Size(max = 100, message = "{departement.nom.size}")
+    @Column(name = "nom", nullable = true)
     private String nom;
 
     /**
      * Liste des villes appartenant à ce département
-     * Relation One-to-Many avec cascade et fetch lazy pour les performances
+     * Relation One-to-Many bidirectionnelle
+     * mappedBy fait référence à l'attribut 'departement' dans la classe Ville
      */
     @OneToMany(mappedBy = "departement", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference // Gestion des références circulaires JSON
     private List<Ville> villes = new ArrayList<>();
 
+    // ==================== CONSTRUCTEURS ====================
+
     /**
-     * Constructeur par défaut (obligatoire pour JPA et la sérialisation JSON)
+     * Constructeur par défaut (obligatoire pour JPA)
      */
     public Departement() {
     }
 
     /**
-     * Constructeur pour création d'un département
+     * Constructeur avec code seulement
+     * @param code code du département
+     */
+    public Departement(String code) {
+        this.code = code;
+    }
+
+    /**
+     * Constructeur complet
      * @param code code du département
      * @param nom nom du département
      */
@@ -70,7 +82,7 @@ public class Departement {
         this.nom = nom;
     }
 
-    // ========== GETTERS ET SETTERS ==========
+    // ==================== GETTERS ET SETTERS ====================
 
     /**
      * Récupère l'ID du département
@@ -78,6 +90,14 @@ public class Departement {
      */
     public Long getId() {
         return id;
+    }
+
+    /**
+     * Définit l'ID du département (généralement pas utilisé car auto-généré)
+     * @param id nouveau ID
+     */
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
@@ -90,7 +110,7 @@ public class Departement {
 
     /**
      * Définit le code du département
-     * @param code nouveau code du département
+     * @param code nouveau code
      */
     public void setCode(String code) {
         this.code = code;
@@ -98,7 +118,7 @@ public class Departement {
 
     /**
      * Récupère le nom du département
-     * @return nom du département
+     * @return nom du département (peut être null)
      */
     public String getNom() {
         return nom;
@@ -106,7 +126,7 @@ public class Departement {
 
     /**
      * Définit le nom du département
-     * @param nom nouveau nom du département
+     * @param nom nouveau nom (peut être null)
      */
     public void setNom(String nom) {
         this.nom = nom;
@@ -114,7 +134,7 @@ public class Departement {
 
     /**
      * Récupère la liste des villes du département
-     * @return List<Ville> liste des villes
+     * @return liste des villes
      */
     public List<Ville> getVilles() {
         return villes;
@@ -128,10 +148,11 @@ public class Departement {
         this.villes = villes;
     }
 
-    // ========== MÉTHODES UTILITAIRES ==========
+    // ==================== MÉTHODES UTILITAIRES ====================
 
     /**
-     * Ajoute une ville à ce département et définit la relation bidirectionnelle
+     * Ajoute une ville à ce département
+     * Gère la relation bidirectionnelle
      * @param ville ville à ajouter
      */
     public void addVille(Ville ville) {
@@ -154,7 +175,7 @@ public class Departement {
 
     /**
      * Calcule la population totale du département
-     * @return population totale de toutes les villes du département
+     * @return somme des habitants de toutes les villes
      */
     public Integer getPopulationTotale() {
         return villes.stream()
@@ -163,17 +184,17 @@ public class Departement {
     }
 
     /**
-     * Récupère le nombre de villes dans ce département
+     * Récupère le nombre de villes dans le département
      * @return nombre de villes
      */
     public int getNombreVilles() {
         return villes.size();
     }
 
-    // ========== MÉTHODES STANDARD ==========
+    // ==================== MÉTHODES STANDARD ====================
 
     /**
-     * Méthode toString() pour faciliter le débogage
+     * Représentation textuelle du département
      */
     @Override
     public String toString() {

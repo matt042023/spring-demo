@@ -21,6 +21,108 @@
     --transition: all 0.2s ease;
 }
 
+/* Outils avancés */
+.advanced-tools { margin-top: 16px; }
+.advanced-tools > summary { cursor: pointer; font-weight: 600; }
+.advanced-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+@media (min-width: 720px) {
+  .advanced-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.tool-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--card-bg, #fff); }
+.tool-card h4 { margin: 0 0 8px 0; font-size: 1rem; }
+.form-inline { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.form-inline input, .form-inline button, .form-block textarea { flex: 1; }
+.form-block textarea { width: 100%; min-height: 100px; resize: vertical; }
+.btn.btn-sm { padding: 6px 10px; font-size: .9rem; }
+
+/* Pagination */
+.pagination-container {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.page-size-selector select {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.page-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.page-buttons button {
+    min-width: 36px;
+    height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--card-background);
+    color: var(--text-primary);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.page-buttons button:hover {
+    background: var(--background-color);
+    border-color: var(--primary-color);
+}
+
+.page-buttons button.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.page-buttons span {
+    padding: 0 8px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .pagination-controls {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .page-buttons {
+        justify-content: center;
+    }
+}
+
 /* Reset et styles de base */
 * {
     margin: 0;
@@ -115,7 +217,7 @@ body {
 /* En-têtes de section */
 .section-header {
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
     padding: 20px;
@@ -190,6 +292,7 @@ body {
 .btn-secondary {
     background: var(--secondary-color);
     color: white;
+    margin-top: 30px
 }
 
 .btn-secondary:hover {

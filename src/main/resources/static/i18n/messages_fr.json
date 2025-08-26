@@ -1,0 +1,39 @@
+{
+  "http.error": "Erreur HTTP: {status}",
+  "error.initialLoad": "Erreur lors du chargement des données. Vérifiez que l'API est démarrée.",
+  "departments.load.error": "Impossible de charger les départements",
+  "departments.empty": "Aucun département trouvé",
+  "departments.all": "Tous les départements",
+  "departments.select": "-- Sélectionner un département --",
+  "departments.notFound": "Département non trouvé",
+  "departments.edit.title": "Modifier le département",
+  "departments.delete.title": "Supprimer le département",
+  "departments.delete.confirm": "Êtes-vous sûr de vouloir supprimer le département \"{name}\" ({code}) ?",
+  "departments.delete.blocked": "Le département \"{name}\" ({code}) contient {count} ville(s). Impossible de le supprimer.",
+  "departments.delete.success": "Département supprimé avec succès",
+  "departments.selectedNotFound": "Département sélectionné introuvable",
+
+  "cities.notFound": "Ville non trouvée",
+  "cities.add.title": "Ajouter une nouvelle ville",
+  "cities.edit.title": "Modifier la ville",
+  "cities.details.title": "Détails de la ville {name}",
+  "cities.delete.title": "Supprimer la ville",
+  "cities.delete.confirm": "Êtes-vous sûr de vouloir supprimer la ville \"{name}\" ({population} habitants) ?",
+  "cities.delete.success": "Ville supprimée avec succès",
+  "cities.validation.nameMin": "Le nom de la ville doit contenir au moins 2 caractères",
+  "cities.validation.populationMin": "Le nombre d'habitants doit être supérieur à 0",
+
+  "label.name": "Nom",
+  "label.population": "Population",
+  "label.department": "Département",
+
+  "delete.error": "Erreur lors de la suppression: {message}",
+  "load.error": "Erreur de chargement",
+  "form.selectDepartment": "Veuillez sélectionner un département",
+
+  "error.unexpected": "Une erreur inattendue s'est produite",
+  "error.app": "Une erreur s'est produite dans l'application"
+  ,
+  "hello.success": "Hello: {msg}",
+  "hello.error": "Erreur hello: {message}"
+}

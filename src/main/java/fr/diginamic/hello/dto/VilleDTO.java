@@ -29,23 +29,23 @@ public class VilleDTO {
     /**
      * Nom de la ville avec contraintes de validation
      */
-    @NotNull(message = "Le nom de la ville ne peut pas être null")
-    @Size(min = 2, max = 100, message = "Le nom de la ville doit contenir entre 2 et 100 caractères")
+    @NotNull(message = "{ville.nom.notnull}")
+    @Size(min = 2, max = 100, message = "{ville.nom.size}")
     private String nom;
 
     /**
      * Nombre d'habitants avec contraintes de validation
      */
-    @NotNull(message = "Le nombre d'habitants ne peut pas être null")
-    @Min(value = 1, message = "Le nombre d'habitants doit être au minimum de 1")
-    @Max(value = 50000000, message = "Le nombre d'habitants ne peut pas dépasser 50 millions")
+    @NotNull(message = "{ville.nbHabitants.notnull}")
+    @Min(value = 1, message = "{ville.nbHabitants.min}")
+    @Max(value = 50000000, message = "{ville.nbHabitants.max}")
     private Integer nbHabitants;
 
     /**
      * Informations du département associé à cette ville
      * DTO imbriqué pour éviter les références circulaires
      */
-    @NotNull(message = "Le département ne peut pas être null")
+    @NotNull(message = "{ville.departement.notnull}")
     @Valid
     private DepartementSimplifieDTO departement;
 

@@ -29,15 +29,15 @@ public class DepartementDTO {
     /**
      * Code du département avec contraintes de validation
      */
-    @NotNull(message = "Le code du département ne peut pas être null")
-    @Size(min = 2, max = 3, message = "Le code du département doit contenir entre 2 et 3 caractères")
+    @NotNull(message = "{departement.code.notnull}")
+    @Size(min = 2, max = 3, message = "{departement.code.size}")
     private String code;
 
     /**
      * Nom du département avec contraintes de validation
      */
-    @NotNull(message = "Le nom du département ne peut pas être null")
-    @Size(min = 2, max = 100, message = "Le nom du département doit contenir entre 2 et 100 caractères")
+    @NotNull(message = "{departement.nom.notnull}")
+    @Size(min = 2, max = 100, message = "{departement.nom.size}")
     private String nom;
 
     /**

@@ -6,62 +6,94 @@ import jakarta.validation.constraints.*;
 
 /**
  * Classe représentant une ville avec validation des données
- * Équivalent d'une entité Doctrine en Symfony avec contraintes
+ * Mapping JPA compatible avec le fichier tp-spring-07-recensement.sql
+ *
+ * Structure SQL correspondante :
+ * - Table : ville
+ * - Colonnes : id, nom, id_dept, nb_habs
  */
 @Entity
 @Table(name = "ville")
 public class Ville {
+
     /**
-     * ID généré automatiquement - ne doit pas être fourni lors de la création
+     * ID de la ville - correspond à la colonne "id" du SQL
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**
-     * Nom de la ville avec contraintes de validation
+     * Nom de la ville - correspond à la colonne "nom" du SQL
      */
-    @NotNull(message = "Le nom de la ville ne peut pas être null")
-    @Size(min = 2, max = 100, message = "Le nom de la ville doit contenir entre 2 et 100 caractères")
+    @NotNull(message = "{ville.nom.notnull}")
+    @Size(min = 2, max = 100, message = "{ville.nom.size}")
+    @Column(name = "nom")
     private String nom;
 
     /**
-     * Nombre d'habitants avec contraintes de validation
+     * Nombre d'habitants - correspond à la colonne "nb_habs" du SQL
      */
-    @NotNull(message = "Le nombre d'habitants ne peut pas être null")
-    @Min(value = 1, message = "Le nombre d'habitants doit être au minimum de 1")
-    @Max(value = 50000000, message = "Le nombre d'habitants ne peut pas dépasser 50 millions")
+    @NotNull(message = "{ville.nbHabitants.notnull}")
+    @Min(value = 1, message = "{ville.nbHabitants.min}")
+    @Max(value = 50000000, message = "{ville.nbHabitants.max}")
+    @Column(name = "nb_habs")
     private Integer nbHabitants;
 
     /**
-     * Département auquel appartient cette ville
-     * Relation Many-to-One obligatoire
+     * Département - correspond à la colonne "id_dept" du SQL (clé étrangère)
+     * Relation Many-to-One vers Departement
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "departement_id", nullable = false)
-    @NotNull(message = "Le département ne peut pas être null")
-    @JsonBackReference // Gestion des références circulaires JSON
+    @JoinColumn(name = "id_dept", nullable = false)
+    @NotNull(message = "{ville.departement.notnull}")
+    @JsonBackReference // Évite les références circulaires JSON
     private Departement departement;
 
-    // Constructeur par défaut (obligatoire pour la sérialisation JSON)
+    // ==================== CONSTRUCTEURS ====================
+
+    /**
+     * Constructeur par défaut (obligatoire pour JPA et JSON)
+     */
     public Ville() {
     }
 
-
-    // Constructeur sans ID (pour création - ID généré automatiquement)
+    /**
+     * Constructeur sans département (pour création simple)
+     * @param nom nom de la ville
+     * @param nbHabitants nombre d'habitants
+     */
     public Ville(String nom, Integer nbHabitants) {
         this.nom = nom;
         this.nbHabitants = nbHabitants;
     }
 
-    // Constructeur complet avec département
+    /**
+     * Constructeur complet pour data.sql
+     * @param id id de la ville
+     * @param nom nom de la ville
+     * @param departement département de rattachement
+     * @param nbHabitants nombre d'habitants
+     */
+    public Ville(int id,String nom,Departement departement, Integer nbHabitants) {
+        this.nom = nom;
+        this.nbHabitants = nbHabitants;
+        this.departement = departement;
+    }
+
+    /**
+     * Constructeur complet
+     * @param nom nom de la ville
+     * @param nbHabitants nombre d'habitants
+     * @param departement département de rattachement
+     */
     public Ville(String nom, Integer nbHabitants, Departement departement) {
         this.nom = nom;
         this.nbHabitants = nbHabitants;
         this.departement = departement;
     }
 
-    // Getters et Setters
+    // ==================== GETTERS ET SETTERS ====================
 
     /**
      * Récupère l'ID de la ville
@@ -69,6 +101,14 @@ public class Ville {
      */
     public Long getId() {
         return id;
+    }
+
+    /**
+     * Définit l'ID de la ville (généralement pas utilisé car auto-généré)
+     * @param id nouveau ID
+     */
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
@@ -81,7 +121,7 @@ public class Ville {
 
     /**
      * Définit le nom de la ville
-     * @param nom nouveau nom de la ville
+     * @param nom nouveau nom
      */
     public void setNom(String nom) {
         this.nom = nom;
@@ -104,7 +144,7 @@ public class Ville {
     }
 
     /**
-     * Récupère le département de la ville
+     * Récupère le département
      * @return département de la ville
      */
     public Departement getDepartement() {
@@ -112,14 +152,18 @@ public class Ville {
     }
 
     /**
-     * Définit le département de la ville
+     * Définit le département
      * @param departement nouveau département
      */
     public void setDepartement(Departement departement) {
         this.departement = departement;
     }
 
-    // Méthode toString() pour faciliter le débogage
+    // ==================== MÉTHODES UTILITAIRES ====================
+
+    /**
+     * Représentation textuelle de la ville
+     */
     @Override
     public String toString() {
         return "Ville{" +
@@ -128,5 +172,24 @@ public class Ville {
                 ", nbHabitants=" + nbHabitants +
                 ", departement=" + (departement != null ? departement.getCode() : "null") +
                 '}';
+    }
+
+    /**
+     * Méthode equals basée sur l'ID
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Ville)) return false;
+        Ville ville = (Ville) o;
+        return id != null ? id.equals(ville.id) : ville.id == null;
+    }
+
+    /**
+     * Méthode hashCode basée sur l'ID
+     */
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

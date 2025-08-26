@@ -106,289 +106,198 @@ INSERT INTO departement (code, nom) VALUES
 ('92', 'Hauts-de-Seine'),
 ('93', 'Seine-Saint-Denis'),
 ('94', 'Val-de-Marne'),
-('95', 'Val-d\'Oise');
+('95', 'Val-d\'Oise'),
+('971', 'Guadeloupe'),
+('972', 'Martinique'),
+('973', 'Guyane'),
+('974', 'La Réunion'),
+('2A', 'Corse-du-Sud'),
+('2B', 'Haute-Corse');
 
 -- ========================================
 -- VILLES FRANÇAISES AVEC CORRESPONDANCES EXACTES
 -- ========================================
 
 -- Utilisation des sous-requêtes pour les correspondances exactes département-ville
-INSERT INTO ville (nom, nb_habitants, departement_id) VALUES 
+INSERT INTO ville (id, nom, id_dept, nb_habs) VALUES
 
--- Paris (75) - Département Paris
-('Paris', 2165423, (SELECT id FROM departement WHERE code = '75')),
-
--- Marseille (13) - Département Bouches-du-Rhône
-('Marseille', 873076, (SELECT id FROM departement WHERE code = '13')),
-('Aix-en-Provence', 145071, (SELECT id FROM departement WHERE code = '13')),
-('Arles', 51614, (SELECT id FROM departement WHERE code = '13')),
-('Martigues', 48821, (SELECT id FROM departement WHERE code = '13')),
-
--- Lyon (69) - Département Rhône
-('Lyon', 518635, (SELECT id FROM departement WHERE code = '69')),
-('Villeurbanne', 149019, (SELECT id FROM departement WHERE code = '69')),
-('Vénissieux', 65638, (SELECT id FROM departement WHERE code = '69')),
-('Saint-Priest', 47177, (SELECT id FROM departement WHERE code = '69')),
-
--- Toulouse (31) - Département Haute-Garonne
-('Toulouse', 479553, (SELECT id FROM departement WHERE code = '31')),
-('Colomiers', 39192, (SELECT id FROM departement WHERE code = '31')),
-('Tournefeuille', 29547, (SELECT id FROM departement WHERE code = '31')),
-('Blagnac', 24256, (SELECT id FROM departement WHERE code = '31')),
-
--- Nice (06) - Département Alpes-Maritimes
-('Nice', 342637, (SELECT id FROM departement WHERE code = '06')),
-('Cannes', 74152, (SELECT id FROM departement WHERE code = '06')),
-('Antibes', 75820, (SELECT id FROM departement WHERE code = '06')),
-('Grasse', 51107, (SELECT id FROM departement WHERE code = '06')),
-
--- Nantes (44) - Département Loire-Atlantique
-('Nantes', 320732, (SELECT id FROM departement WHERE code = '44')),
-('Saint-Nazaire', 69993, (SELECT id FROM departement WHERE code = '44')),
-('Saint-Herblain', 46357, (SELECT id FROM departement WHERE code = '44')),
-('Rezé', 42424, (SELECT id FROM departement WHERE code = '44')),
-
--- Montpellier (34) - Département Hérault
-('Montpellier', 295542, (SELECT id FROM departement WHERE code = '34')),
-('Béziers', 77177, (SELECT id FROM departement WHERE code = '34')),
-('Sète', 44270, (SELECT id FROM departement WHERE code = '34')),
-('Lunel', 26055, (SELECT id FROM departement WHERE code = '34')),
-
--- Strasbourg (67) - Département Bas-Rhin
-('Strasbourg', 284677, (SELECT id FROM departement WHERE code = '67')),
-('Schiltigheim', 32606, (SELECT id FROM departement WHERE code = '67')),
-('Haguenau', 35107, (SELECT id FROM departement WHERE code = '67')),
-('Illkirch-Graffenstaden', 27077, (SELECT id FROM departement WHERE code = '67')),
-
--- Bordeaux (33) - Département Gironde
-('Bordeaux', 254436, (SELECT id FROM departement WHERE code = '33')),
-('Mérignac', 69413, (SELECT id FROM departement WHERE code = '33')),
-('Pessac', 62793, (SELECT id FROM departement WHERE code = '33')),
-('Talence', 42637, (SELECT id FROM departement WHERE code = '33')),
-
--- Lille (59) - Département Nord
-('Lille', 236234, (SELECT id FROM departement WHERE code = '59')),
-('Tourcoing', 97476, (SELECT id FROM departement WHERE code = '59')),
-('Roubaix', 95721, (SELECT id FROM departement WHERE code = '59')),
-('Dunkerque', 87353, (SELECT id FROM departement WHERE code = '59')),
-('Villeneuve-d\'Ascq', 61151, (SELECT id FROM departement WHERE code = '59')),
-
--- Rennes (35) - Département Ille-et-Vilaine
-('Rennes', 217728, (SELECT id FROM departement WHERE code = '35')),
-('Saint-Malo', 46478, (SELECT id FROM departement WHERE code = '35')),
-('Fougères', 20418, (SELECT id FROM departement WHERE code = '35')),
-('Vitré', 18605, (SELECT id FROM departement WHERE code = '35')),
-
--- Reims (51) - Département Marne
-('Reims', 182460, (SELECT id FROM departement WHERE code = '51')),
-('Châlons-en-Champagne', 44896, (SELECT id FROM departement WHERE code = '51')),
-('Épernay', 23307, (SELECT id FROM departement WHERE code = '51')),
-
--- Toulon (83) - Département Var
-('Toulon', 176198, (SELECT id FROM departement WHERE code = '83')),
-('Hyères', 55588, (SELECT id FROM departement WHERE code = '83')),
-('Fréjus', 54458, (SELECT id FROM departement WHERE code = '83')),
-('La Seyne-sur-Mer', 65319, (SELECT id FROM departement WHERE code = '83')),
-('Draguignan', 39315, (SELECT id FROM departement WHERE code = '83')),
-
--- Saint-Étienne (42) - Département Loire
-('Saint-Étienne', 171057, (SELECT id FROM departement WHERE code = '42')),
-('Roanne', 35761, (SELECT id FROM departement WHERE code = '42')),
-('Saint-Chamond', 35707, (SELECT id FROM departement WHERE code = '42')),
-('Montbrison', 15678, (SELECT id FROM departement WHERE code = '42')),
-
--- Le Havre (76) - Département Seine-Maritime
-('Le Havre', 170147, (SELECT id FROM departement WHERE code = '76')),
-('Rouen', 110145, (SELECT id FROM departement WHERE code = '76')),
-('Sotteville-lès-Rouen', 29260, (SELECT id FROM departement WHERE code = '76')),
-('Saint-Étienne-du-Rouvray', 28209, (SELECT id FROM departement WHERE code = '76')),
-
--- Grenoble (38) - Département Isère
-('Grenoble', 158454, (SELECT id FROM departement WHERE code = '38')),
-('Saint-Martin-d\'Hères', 38067, (SELECT id FROM departement WHERE code = '38')),
-('Échirolles', 35842, (SELECT id FROM departement WHERE code = '38')),
-('Fontaine', 22063, (SELECT id FROM departement WHERE code = '38')),
-
--- Dijon (21) - Département Côte-d'Or
-('Dijon', 156920, (SELECT id FROM departement WHERE code = '21')),
-('Beaune', 21923, (SELECT id FROM departement WHERE code = '21')),
-('Chenôve', 13672, (SELECT id FROM departement WHERE code = '21')),
-
--- Angers (49) - Département Maine-et-Loire
-('Angers', 155850, (SELECT id FROM departement WHERE code = '49')),
-('Cholet', 54204, (SELECT id FROM departement WHERE code = '49')),
-('Saumur', 26973, (SELECT id FROM departement WHERE code = '49')),
-
--- Nîmes (30) - Département Gard
-('Nîmes', 148561, (SELECT id FROM departement WHERE code = '30')),
-('Alès', 40400, (SELECT id FROM departement WHERE code = '30')),
-('Bagnols-sur-Cèze', 18044, (SELECT id FROM departement WHERE code = '30')),
-
--- Le Mans (72) - Département Sarthe
-('Le Mans', 143813, (SELECT id FROM departement WHERE code = '72')),
-('Sablé-sur-Sarthe', 12051, (SELECT id FROM departement WHERE code = '72')),
-('La Flèche', 14842, (SELECT id FROM departement WHERE code = '72')),
-
--- Brest (29) - Département Finistère
-('Brest', 139456, (SELECT id FROM departement WHERE code = '29')),
-('Quimper', 63360, (SELECT id FROM departement WHERE code = '29')),
-('Concarneau', 19554, (SELECT id FROM departement WHERE code = '29')),
-('Morlaix', 14810, (SELECT id FROM departement WHERE code = '29')),
-
--- Clermont-Ferrand (63) - Département Puy-de-Dôme
-('Clermont-Ferrand', 147284, (SELECT id FROM departement WHERE code = '63')),
-('Chamalières', 17370, (SELECT id FROM departement WHERE code = '63')),
-('Riom', 18469, (SELECT id FROM departement WHERE code = '63')),
-
--- Amiens (80) - Département Somme
-('Amiens', 133755, (SELECT id FROM departement WHERE code = '80')),
-('Abbeville', 23067, (SELECT id FROM departement WHERE code = '80')),
-('Montdidier', 6084, (SELECT id FROM departement WHERE code = '80')),
-
--- Limoges (87) - Département Haute-Vienne
-('Limoges', 132175, (SELECT id FROM departement WHERE code = '87')),
-('Saint-Junien', 10713, (SELECT id FROM departement WHERE code = '87')),
-('Panazol', 10558, (SELECT id FROM departement WHERE code = '87')),
-
--- Tours (37) - Département Indre-et-Loire
-('Tours', 136463, (SELECT id FROM departement WHERE code = '37')),
-('Joué-lès-Tours', 38294, (SELECT id FROM departement WHERE code = '37')),
-('Saint-Pierre-des-Corps', 15470, (SELECT id FROM departement WHERE code = '37')),
-
--- Perpignan (66) - Département Pyrénées-Orientales
-('Perpignan', 121875, (SELECT id FROM departement WHERE code = '66')),
-('Canet-en-Roussillon', 12478, (SELECT id FROM departement WHERE code = '66')),
-('Saint-Estève', 11753, (SELECT id FROM departement WHERE code = '66')),
-
--- Metz (57) - Département Moselle
-('Metz', 117492, (SELECT id FROM departement WHERE code = '57')),
-('Thionville', 40701, (SELECT id FROM departement WHERE code = '57')),
-('Montigny-lès-Metz', 22595, (SELECT id FROM departement WHERE code = '57')),
-('Sarreguemines', 20743, (SELECT id FROM departement WHERE code = '57')),
-
--- Besançon (25) - Département Doubs
-('Besançon', 116914, (SELECT id FROM departement WHERE code = '25')),
-('Montbéliard', 25395, (SELECT id FROM departement WHERE code = '25')),
-('Pontarlier', 17356, (SELECT id FROM departement WHERE code = '25')),
-
--- Boulogne-Billancourt (92) - Département Hauts-de-Seine
-('Boulogne-Billancourt', 120071, (SELECT id FROM departement WHERE code = '92')),
-('Nanterre', 96807, (SELECT id FROM departement WHERE code = '92')),
-('Asnières-sur-Seine', 86512, (SELECT id FROM departement WHERE code = '92')),
-('Colombes', 86650, (SELECT id FROM departement WHERE code = '92')),
-('Rueil-Malmaison', 78152, (SELECT id FROM departement WHERE code = '92')),
-('Issy-les-Moulineaux', 68395, (SELECT id FROM departement WHERE code = '92')),
-('Levallois-Perret', 66407, (SELECT id FROM departement WHERE code = '92')),
-('Neuilly-sur-Seine', 61768, (SELECT id FROM departement WHERE code = '92')),
-('Antony', 61711, (SELECT id FROM departement WHERE code = '92')),
-('Clichy', 61070, (SELECT id FROM departement WHERE code = '92')),
-
--- Orléans (45) - Département Loiret
-('Orléans', 116238, (SELECT id FROM departement WHERE code = '45')),
-('Fleury-les-Aubrais', 20228, (SELECT id FROM departement WHERE code = '45')),
-('Olivet', 21275, (SELECT id FROM departement WHERE code = '45')),
-
--- Mulhouse (68) - Département Haut-Rhin
-('Mulhouse', 108312, (SELECT id FROM departement WHERE code = '68')),
-('Colmar', 69105, (SELECT id FROM departement WHERE code = '68')),
-('Saint-Louis', 20087, (SELECT id FROM departement WHERE code = '68')),
-
--- Caen (14) - Département Calvados
-('Caen', 105512, (SELECT id FROM departement WHERE code = '14')),
-('Hérouville-Saint-Clair', 21031, (SELECT id FROM departement WHERE code = '14')),
-('Lisieux', 20638, (SELECT id FROM departement WHERE code = '14')),
-('Bayeux', 13348, (SELECT id FROM departement WHERE code = '14')),
-
--- Nancy (54) - Département Meurthe-et-Moselle
-('Nancy', 104321, (SELECT id FROM departement WHERE code = '54')),
-('Vandœuvre-lès-Nancy', 29378, (SELECT id FROM departement WHERE code = '54')),
-('Lunéville', 18479, (SELECT id FROM departement WHERE code = '54')),
-
--- Saint-Denis (93) - Département Seine-Saint-Denis
-('Saint-Denis', 112091, (SELECT id FROM departement WHERE code = '93')),
-('Montreuil', 109914, (SELECT id FROM departement WHERE code = '93')),
-('Aulnay-sous-Bois', 85740, (SELECT id FROM departement WHERE code = '93')),
-('Aubervilliers', 88948, (SELECT id FROM departement WHERE code = '93')),
-('Drancy', 71486, (SELECT id FROM departement WHERE code = '93')),
-('Saint-Ouen-sur-Seine', 50494, (SELECT id FROM departement WHERE code = '93')),
-
--- Argenteuil (95) - Département Val-d'Oise
-('Argenteuil', 110210, (SELECT id FROM departement WHERE code = '95')),
-('Cergy', 64434, (SELECT id FROM departement WHERE code = '95')),
-('Sarcelles', 59052, (SELECT id FROM departement WHERE code = '95')),
-('Franconville', 34088, (SELECT id FROM departement WHERE code = '95')),
-
--- Avignon (84) - Département Vaucluse
-('Avignon', 92209, (SELECT id FROM departement WHERE code = '84')),
-('Carpentras', 28798, (SELECT id FROM departement WHERE code = '84')),
-('Orange', 29135, (SELECT id FROM departement WHERE code = '84')),
-
--- Créteil (94) - Département Val-de-Marne
-('Créteil', 91042, (SELECT id FROM departement WHERE code = '94')),
-('Vitry-sur-Seine', 93569, (SELECT id FROM departement WHERE code = '94')),
-('Saint-Maur-des-Fossés', 75035, (SELECT id FROM departement WHERE code = '94')),
-('Ivry-sur-Seine', 60451, (SELECT id FROM departement WHERE code = '94')),
-('Villejuif', 55983, (SELECT id FROM departement WHERE code = '94')),
-
--- Poitiers (86) - Département Vienne
-('Poitiers', 88776, (SELECT id FROM departement WHERE code = '86')),
-('Châtellerault', 31275, (SELECT id FROM departement WHERE code = '86')),
-
--- Versailles (78) - Département Yvelines
-('Versailles', 85416, (SELECT id FROM departement WHERE code = '78')),
-('Saint-Germain-en-Laye', 44753, (SELECT id FROM departement WHERE code = '78')),
-('Sartrouville', 52315, (SELECT id FROM departement WHERE code = '78')),
-
--- La Rochelle (17) - Département Charente-Maritime
-('La Rochelle', 76810, (SELECT id FROM departement WHERE code = '17')),
-('Saintes', 25468, (SELECT id FROM departement WHERE code = '17')),
-('Rochefort', 24014, (SELECT id FROM departement WHERE code = '17')),
-
--- Calais (62) - Département Pas-de-Calais
-('Calais', 72509, (SELECT id FROM departement WHERE code = '62')),
-('Arras', 41694, (SELECT id FROM departement WHERE code = '62')),
-('Lens', 31131, (SELECT id FROM departement WHERE code = '62')),
-('Béthune', 25068, (SELECT id FROM departement WHERE code = '62')),
-
--- Bourges (18) - Département Cher
-('Bourges', 64668, (SELECT id FROM departement WHERE code = '18')),
-('Vierzon', 26109, (SELECT id FROM departement WHERE code = '18')),
-
--- Lorient (56) - Département Morbihan
-('Lorient', 57567, (SELECT id FROM departement WHERE code = '56')),
-('Vannes', 54020, (SELECT id FROM departement WHERE code = '56')),
-('Lanester', 22987, (SELECT id FROM departement WHERE code = '56')),
-
--- Niort (79) - Département Deux-Sèvres
-('Niort', 58707, (SELECT id FROM departement WHERE code = '79')),
-('Parthenay', 10540, (SELECT id FROM departement WHERE code = '79')),
-
--- Chambéry (73) - Département Savoie
-('Chambéry', 59490, (SELECT id FROM departement WHERE code = '73')),
-('Aix-les-Bains', 30011, (SELECT id FROM departement WHERE code = '73')),
-('Albertville', 19214, (SELECT id FROM departement WHERE code = '73')),
-
--- Montauban (82) - Département Tarn-et-Garonne
-('Montauban', 60810, (SELECT id FROM departement WHERE code = '82')),
-('Castelsarrasin', 13619, (SELECT id FROM departement WHERE code = '82')),
-
--- Annecy (74) - Département Haute-Savoie
-('Annecy', 132865, (SELECT id FROM departement WHERE code = '74')),
-('Thonon-les-Bains', 35241, (SELECT id FROM departement WHERE code = '74')),
-('Annemasse', 36250, (SELECT id FROM departement WHERE code = '74')),
-
--- Pau (64) - Département Pyrénées-Atlantiques
-('Pau', 76666, (SELECT id FROM departement WHERE code = '64')),
-('Bayonne', 51411, (SELECT id FROM departement WHERE code = '64')),
-('Anglet', 39223, (SELECT id FROM departement WHERE code = '64')),
-('Biarritz', 25404, (SELECT id FROM departement WHERE code = '64')),
-
--- Meaux (77) - Département Seine-et-Marne
-('Meaux', 55750, (SELECT id FROM departement WHERE code = '77')),
-('Chelles', 54234, (SELECT id FROM departement WHERE code = '77')),
-('Melun', 40032, (SELECT id FROM departement WHERE code = '77'));
-
--- Affichage du résultat
-SELECT 'Départements créés:' as info, COUNT(*) as nombre FROM departement
-UNION ALL
-SELECT 'Villes créées:' as info, COUNT(*) as nombre FROM ville;
+(13321,'Paris',(SELECT id FROM departement WHERE code = '75'),2190327),
+(13322,'Marseille',(SELECT id FROM departement WHERE code = '13'),862211),
+(13323,'Toulouse',(SELECT id FROM departement WHERE code = '31'),475438),
+(13324,'Nice',(SELECT id FROM departement WHERE code = '06'),342637),
+(13325,'Nantes',(SELECT id FROM departement WHERE code = '44'),306694),
+(13326,'Montpellier',(SELECT id FROM departement WHERE code = '34'),281613),
+(13327,'Strasbourg',(SELECT id FROM departement WHERE code = '67'),279284),
+(13328,'Bordeaux',(SELECT id FROM departement WHERE code = '33'),252040),
+(13329,'Lille',(SELECT id FROM departement WHERE code = '59'),232440),
+(13330,'Rennes',(SELECT id FROM departement WHERE code = '35'),216268),
+(13331,'Reims',(SELECT id FROM departement WHERE code = '51'),183113),
+(13332,'Saint-Étienne',(SELECT id FROM departement WHERE code = '42'),171924),
+(13333,'Le Havre',(SELECT id FROM departement WHERE code = '76'),170352),
+(13334,'Toulon',(SELECT id FROM departement WHERE code = '83'),169634),
+(13335,'Grenoble',(SELECT id FROM departement WHERE code = '38'),158180),
+(13336,'Dijon',(SELECT id FROM departement WHERE code = '21'),155090),
+(13337,'Angers',(SELECT id FROM departement WHERE code = '49'),151229),
+(13338,'Nîmes',(SELECT id FROM departement WHERE code = '30'),151001),
+(13339,'Villeurbanne',(SELECT id FROM departement WHERE code = '69'),149019),
+(13340,'Saint-Denis',(SELECT id FROM departement WHERE code = '93'),147920),
+(13341,'Aix-en-Provence',(SELECT id FROM departement WHERE code = '13'),143006),
+(13342,'Le Mans',(SELECT id FROM departement WHERE code = '72'),142991),
+(13343,'Clermont-Ferrand',(SELECT id FROM departement WHERE code = '63'),142686),
+(13344,'Brest',(SELECT id FROM departement WHERE code = '29'),139342),
+(13345,'Tours',(SELECT id FROM departement WHERE code = '37'),136565),
+(13346,'Amiens',(SELECT id FROM departement WHERE code = '80'),133755),
+(13347,'Limoges',(SELECT id FROM departement WHERE code = '87'),132660),
+(13348,'Annecy',(SELECT id FROM departement WHERE code = '74'),126419),
+(13349,'Perpignan',(SELECT id FROM departement WHERE code = '66'),121875),
+(13350,'Boulogne-Billancourt',(SELECT id FROM departement WHERE code = '92'),119645),
+(13351,'Metz',(SELECT id FROM departement WHERE code = '57'),117890),
+(13352,'Besançon',(SELECT id FROM departement WHERE code = '25'),116466),
+(13353,'Orléans',(SELECT id FROM departement WHERE code = '45'),114782),
+(13354,'Saint-Denis',(SELECT id FROM departement WHERE code = '974'),111354),
+(13355,'Argenteuil',(SELECT id FROM departement WHERE code = '95'),110468),
+(13356,'Rouen',(SELECT id FROM departement WHERE code = '76'),110117),
+(13357,'Mulhouse',(SELECT id FROM departement WHERE code = '68'),108999),
+(13358,'Montreuil',(SELECT id FROM departement WHERE code = '93'),108402),
+(13359,'Saint-Paul',(SELECT id FROM departement WHERE code = '974'),105482),
+(13360,'Caen',(SELECT id FROM departement WHERE code = '14'),105403),
+(13361,'Nancy',(SELECT id FROM departement WHERE code = '54'),104592),
+(13362,'Lyon 3e Arrondissement',(SELECT id FROM departement WHERE code = '69'),101992),
+(13363,'Tourcoing',(SELECT id FROM departement WHERE code = '59'),97476),
+(13364,'Roubaix',(SELECT id FROM departement WHERE code = '59'),96412),
+(13365,'Nanterre',(SELECT id FROM departement WHERE code = '92'),94258),
+(13366,'Vitry-sur-Seine',(SELECT id FROM departement WHERE code = '94'),92755),
+(13367,'Avignon',(SELECT id FROM departement WHERE code = '84'),92378),
+(13368,'Créteil',(SELECT id FROM departement WHERE code = '94'),89392),
+(13369,'Dunkerque',(SELECT id FROM departement WHERE code = '59'),88108),
+(13370,'Poitiers',(SELECT id FROM departement WHERE code = '86'),87961),
+(13371,'Aubervilliers',(SELECT id FROM departement WHERE code = '93'),86061),
+(13372,'Asnières-sur-Seine',(SELECT id FROM departement WHERE code = '92'),85973),
+(13373,'Colombes',(SELECT id FROM departement WHERE code = '92'),85368),
+(13374,'Versailles',(SELECT id FROM departement WHERE code = '78'),85346),
+(13375,'Aulnay-sous-Bois',(SELECT id FROM departement WHERE code = '93'),84662),
+(13376,'Lyon 8e Arrondissement',(SELECT id FROM departement WHERE code = '69'),84517),
+(13377,'Saint-Pierre',(SELECT id FROM departement WHERE code = '974'),84169),
+(13378,'Lyon 7e Arrondissement',(SELECT id FROM departement WHERE code = '69'),82045),
+(13379,'Courbevoie',(SELECT id FROM departement WHERE code = '92'),81720),
+(13380,'Fort-de-France',(SELECT id FROM departement WHERE code = '972'),81017),
+(13381,'Cherbourg-en-Cotentin',(SELECT id FROM departement WHERE code = '50'),80076),
+(13382,'Rueil-Malmaison',(SELECT id FROM departement WHERE code = '92'),78195),
+(13383,'Champigny-sur-Marne',(SELECT id FROM departement WHERE code = '94'),77409),
+(13384,'Le Tampon',(SELECT id FROM departement WHERE code = '974'),77283),
+(13385,'Pau',(SELECT id FROM departement WHERE code = '64'),77251),
+(13386,'Béziers',(SELECT id FROM departement WHERE code = '34'),76493),
+(13387,'La Rochelle',(SELECT id FROM departement WHERE code = '17'),75736),
+(13388,'Calais',(SELECT id FROM departement WHERE code = '62'),74978),
+(13389,'Saint-Maur-des-Fossés',(SELECT id FROM departement WHERE code = '94'),74893),
+(13390,'Cannes',(SELECT id FROM departement WHERE code = '06'),74152),
+(13391,'Antibes',(SELECT id FROM departement WHERE code = '06'),73798),
+(13392,'Mérignac',(SELECT id FROM departement WHERE code = '33'),70317),
+(13393,'Drancy',(SELECT id FROM departement WHERE code = '93'),70269),
+(13394,'Colmar',(SELECT id FROM departement WHERE code = '68'),69899),
+(13395,'Saint-Nazaire',(SELECT id FROM departement WHERE code = '44'),69719),
+(13396,'Ajaccio',(SELECT id FROM departement WHERE code = '2A'),69075),
+(13397,'Issy-les-Moulineaux',(SELECT id FROM departement WHERE code = '92'),68395),
+(13398,'Noisy-le-Grand',(SELECT id FROM departement WHERE code = '93'),66659),
+(13399,'Bourges',(SELECT id FROM departement WHERE code = '18'),65555),
+(13400,'Vénissieux',(SELECT id FROM departement WHERE code = '69'),65405),
+(13401,'La Seyne-sur-Mer',(SELECT id FROM departement WHERE code = '83'),64620),
+(13402,'Cergy',(SELECT id FROM departement WHERE code = '95'),63820),
+(13403,'Levallois-Perret',(SELECT id FROM departement WHERE code = '92'),63462),
+(13404,'Quimper',(SELECT id FROM departement WHERE code = '29'),63405),
+(13405,'Valence',(SELECT id FROM departement WHERE code = '26'),62477),
+(13406,'Villeneuve-d\'Ascq',(SELECT id FROM departement WHERE code = '59'),62358),
+(13407,'Antony',(SELECT id FROM departement WHERE code = '92'),62210),
+(13408,'Pessac',(SELECT id FROM departement WHERE code = '33'),61859),
+(13409,'Ivry-sur-Seine',(SELECT id FROM departement WHERE code = '94'),60771),
+(13410,'Troyes',(SELECT id FROM departement WHERE code = '10'),60640),
+(13411,'Neuilly-sur-Seine',(SELECT id FROM departement WHERE code = '92'),60580),
+(13412,'Cayenne',(SELECT id FROM departement WHERE code = '973'),60580),
+(13413,'Montauban',(SELECT id FROM departement WHERE code = '82'),60444),
+(13414,'Clichy',(SELECT id FROM departement WHERE code = '92'),60387),
+(13415,'Chambéry',(SELECT id FROM departement WHERE code = '73'),59183),
+(13416,'Niort',(SELECT id FROM departement WHERE code = '79'),59005),
+(13417,'Sarcelles',(SELECT id FROM departement WHERE code = '95'),57781),
+(13418,'Lorient',(SELECT id FROM departement WHERE code = '56'),57274),
+(13419,'Beauvais',(SELECT id FROM departement WHERE code = '60'),56020),
+(13420,'Le Blanc-Mesnil',(SELECT id FROM departement WHERE code = '93'),55987),
+(13421,'Hyères',(SELECT id FROM departement WHERE code = '83'),55772),
+(13422,'Saint-André',(SELECT id FROM departement WHERE code = '974'),55628),
+(13423,'Épinay-sur-Seine',(SELECT id FROM departement WHERE code = '93'),55593),
+(13424,'Villejuif',(SELECT id FROM departement WHERE code = '94'),55478),
+(13425,'Pantin',(SELECT id FROM departement WHERE code = '93'),55342),
+(13426,'Maisons-Alfort',(SELECT id FROM departement WHERE code = '94'),55289),
+(13427,'Évry',(SELECT id FROM departement WHERE code = '91'),54663),
+(13428,'Saint-Quentin',(SELECT id FROM departement WHERE code = '02'),54443),
+(13429,'Meaux',(SELECT id FROM departement WHERE code = '77'),54331),
+(13430,'Les Abymes',(SELECT id FROM departement WHERE code = '971'),54260),
+(13431,'Chelles',(SELECT id FROM departement WHERE code = '77'),54196),
+(13432,'La Roche-sur-Yon',(SELECT id FROM departement WHERE code = '85'),53741),
+(13433,'Cholet',(SELECT id FROM departement WHERE code = '49'),53718),
+(13434,'Narbonne',(SELECT id FROM departement WHERE code = '11'),53594),
+(13435,'Fontenay-sous-Bois',(SELECT id FROM departement WHERE code = '94'),53424),
+(13436,'Saint-Louis',(SELECT id FROM departement WHERE code = '974'),53220),
+(13437,'Vannes',(SELECT id FROM departement WHERE code = '56'),53218),
+(13438,'Bondy',(SELECT id FROM departement WHERE code = '93'),53193),
+(13439,'Fréjus',(SELECT id FROM departement WHERE code = '83'),53168),
+(13440,'Arles',(SELECT id FROM departement WHERE code = '13'),52857),
+(13441,'Sartrouville',(SELECT id FROM departement WHERE code = '78'),52648),
+(13442,'Clamart',(SELECT id FROM departement WHERE code = '92'),52528),
+(13443,'Bobigny',(SELECT id FROM departement WHERE code = '93'),52337),
+(13444,'Lyon 6e Arrondissement',(SELECT id FROM departement WHERE code = '69'),51416),
+(13445,'Corbeil-Essonnes',(SELECT id FROM departement WHERE code = '91'),51049),
+(13446,'Lyon 9e Arrondissement',(SELECT id FROM departement WHERE code = '69'),50706),
+(13447,'Grasse',(SELECT id FROM departement WHERE code = '06'),50677),
+(13448,'Sevran',(SELECT id FROM departement WHERE code = '93'),50629),
+(13449,'Bayonne',(SELECT id FROM departement WHERE code = '64'),50589),
+(13450,'Massy',(SELECT id FROM departement WHERE code = '91'),49924),
+(13451,'Cagnes-sur-Mer',(SELECT id FROM departement WHERE code = '06'),49902),
+(13452,'Vincennes',(SELECT id FROM departement WHERE code = '94'),49853),
+(13453,'Saint-Ouen',(SELECT id FROM departement WHERE code = '93'),49664),
+(13454,'Laval',(SELECT id FROM departement WHERE code = '53'),49492),
+(13455,'Montrouge',(SELECT id FROM departement WHERE code = '92'),49128),
+(13456,'Albi',(SELECT id FROM departement WHERE code = '81'),49024),
+(13457,'Belfort',(SELECT id FROM departement WHERE code = '90'),48973),
+(13458,'Lyon 5e Arrondissement',(SELECT id FROM departement WHERE code = '69'),48929),
+(13459,'Évreux',(SELECT id FROM departement WHERE code = '27'),48899),
+(13460,'Martigues',(SELECT id FROM departement WHERE code = '13'),48783),
+(13461,'Suresnes',(SELECT id FROM departement WHERE code = '92'),48620),
+(13462,'Vaulx-en-Velin',(SELECT id FROM departement WHERE code = '69'),48497),
+(13463,'Brive-la-Gaillarde',(SELECT id FROM departement WHERE code = '19'),47004),
+(13464,'Charleville-Mézières',(SELECT id FROM departement WHERE code = '08'),46682),
+(13465,'Gennevilliers',(SELECT id FROM departement WHERE code = '92'),46653),
+(13466,'Saint-Herblain',(SELECT id FROM departement WHERE code = '44'),46603),
+(13467,'Saint-Malo',(SELECT id FROM departement WHERE code = '35'),46005),
+(13468,'Carcassonne',(SELECT id FROM departement WHERE code = '11'),45895),
+(13469,'Saint-Priest',(SELECT id FROM departement WHERE code = '69'),45844),
+(13470,'Blois',(SELECT id FROM departement WHERE code = '41'),45687),
+(13471,'Salon-de-Provence',(SELECT id FROM departement WHERE code = '13'),45574),
+(13472,'Chalon-sur-Saône',(SELECT id FROM departement WHERE code = '71'),45446),
+(13473,'Rosny-sous-Bois',(SELECT id FROM departement WHERE code = '93'),45411),
+(13474,'Meudon',(SELECT id FROM departement WHERE code = '92'),45328),
+(13475,'Aubagne',(SELECT id FROM departement WHERE code = '13'),45290),
+(13476,'Saint-Brieuc',(SELECT id FROM departement WHERE code = '22'),44999),
+(13477,'Châlons-en-Champagne',(SELECT id FROM departement WHERE code = '51'),44980),
+(13478,'Bastia',(SELECT id FROM departement WHERE code = '2B'),44829),
+(13479,'Puteaux',(SELECT id FROM departement WHERE code = '92'),44662),
+(13480,'Livry-Gargan',(SELECT id FROM departement WHERE code = '93'),44466),
+(13481,'Choisy-le-Roi',(SELECT id FROM departement WHERE code = '94'),44450),
+(13482,'Châteauroux',(SELECT id FROM departement WHERE code = '36'),44088),
+(13483,'Mantes-la-Jolie',(SELECT id FROM departement WHERE code = '78'),43969),
+(13484,'Alfortville',(SELECT id FROM departement WHERE code = '94'),43886),
+(13485,'Saint-Laurent-du-Maroni',(SELECT id FROM departement WHERE code = '973'),43799),
+(13486,'Valenciennes',(SELECT id FROM departement WHERE code = '59'),43680),
+(13487,'Sète',(SELECT id FROM departement WHERE code = '34'),43609),
+(13488,'Noisy-le-Sec',(SELECT id FROM departement WHERE code = '93'),43537),
+(13489,'Istres',(SELECT id FROM departement WHERE code = '13'),42925),
+(13490,'Caluire-et-Cuire',(SELECT id FROM departement WHERE code = '69'),42915),
+(13491,'Talence',(SELECT id FROM departement WHERE code = '33'),42712),
+(13492,'Garges-lès-Gonesse',(SELECT id FROM departement WHERE code = '95'),42598),
+(13493,'La Courneuve',(SELECT id FROM departement WHERE code = '93'),42485),
+(13494,'Angoulême',(SELECT id FROM departement WHERE code = '16'),41935),
+(13495,'Boulogne-sur-Mer',(SELECT id FROM departement WHERE code = '62'),41669),
+(13496,'Le Cannet',(SELECT id FROM departement WHERE code = '06'),41612),
+(13497,'Bourg-en-Bresse',(SELECT id FROM departement WHERE code = '01'),41365),
+(13498,'Wattrelos',(SELECT id FROM departement WHERE code = '59'),41341),
+(13499,'Castres',(SELECT id FROM departement WHERE code = '81'),41338),
+(13500,'Bron',(SELECT id FROM departement WHERE code = '69'),41060);

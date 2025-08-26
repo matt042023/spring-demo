@@ -1,0 +1,38 @@
+{
+  "http.error": "HTTP-Fehler: {status}",
+  "error.initialLoad": "Daten konnten nicht geladen werden. Stellen Sie sicher, dass die API läuft.",
+  "departments.load.error": "Departements konnten nicht geladen werden",
+  "departments.empty": "Keine Departements gefunden",
+  "departments.all": "Alle Departements",
+  "departments.select": "-- Departement auswählen --",
+  "departments.notFound": "Departement nicht gefunden",
+  "departments.edit.title": "Departement bearbeiten",
+  "departments.delete.title": "Departement löschen",
+  "departments.delete.confirm": "Möchten Sie das Departement \"{name}\" ({code}) wirklich löschen?",
+  "departments.delete.blocked": "Das Departement \"{name}\" ({code}) enthält {count} Stadt(en). Löschen nicht möglich.",
+  "departments.delete.success": "Departement erfolgreich gelöscht",
+  "departments.selectedNotFound": "Ausgewähltes Departement nicht gefunden",
+
+  "cities.notFound": "Stadt nicht gefunden",
+  "cities.add.title": "Neue Stadt hinzufügen",
+  "cities.edit.title": "Stadt bearbeiten",
+  "cities.details.title": "Stadtdetails {name}",
+  "cities.delete.title": "Stadt löschen",
+  "cities.delete.confirm": "Möchten Sie die Stadt \"{name}\" wirklich löschen? ({population} Einwohner)",
+  "cities.delete.success": "Stadt erfolgreich gelöscht",
+  "cities.validation.nameMin": "Der Stadtname muss mindestens 2 Zeichen enthalten",
+  "cities.validation.populationMin": "Die Einwohnerzahl muss größer als 0 sein",
+
+  "label.name": "Name",
+  "label.population": "Einwohnerzahl",
+  "label.department": "Departement",
+
+  "delete.error": "Fehler beim Löschen: {message}",
+  "load.error": "Ladefehler",
+  "form.selectDepartment": "Bitte ein Departement auswählen",
+
+  "error.unexpected": "Ein unerwarteter Fehler ist aufgetreten",
+  "error.app": "Ein Anwendungsfehler ist aufgetreten",
+  "hello.success": "Hallo: {msg}",
+  "hello.error": "Hallo-Fehler: {message}"
+}

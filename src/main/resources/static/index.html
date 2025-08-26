@@ -12,6 +12,19 @@
         <header class="header">
             <h1><i class="fas fa-city"></i> Gestion des Villes et Départements</h1>
             <p class="subtitle">Interface d'administration pour la gestion des données territoriales françaises</p>
+            <div class="header-actions">
+                <div class="lang-switcher">
+                    <label for="lang-select" title="Langue"><i class="fas fa-globe"></i></label>
+                    <select id="lang-select" onchange="onLanguageChange(this.value)">
+                        <option value="fr">FR</option>
+                        <option value="en">EN</option>
+                        <option value="de">DE</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="helloPing()">
+                    <i class="fas fa-hand-paper"></i> Comment ça marche ?
+                </button>
+            </div>
         </header>
 
         <!-- Navigation -->
@@ -31,7 +44,7 @@
         <div id="villes-section" class="tab-content active">
             <div class="section-header">
                 <h2><i class="fas fa-building"></i> Gestion des Villes</h2>
-                <button class="btn btn-primary" onclick="showAddVilleForm()">
+                <button class="btn btn-primary " onclick="showAddVilleForm()">
                     <i class="fas fa-plus"></i> Ajouter une ville
                 </button>
             </div>
@@ -87,15 +100,116 @@
                 <div class="sort-group">
                     <label for="ville-sort">Trier par :</label>
                     <select id="ville-sort" onchange="sortVilles()">
-                        <option value="nom-asc">Nom (A-Z)</option>
-                        <option value="nom-desc">Nom (Z-A)</option>
-                        <option value="population-asc">Population (croissant)</option>
-                        <option value="population-desc">Population (décroissant)</option>
-                        <option value="departement-asc">Département (A-Z)</option>
-                        <option value="departement-desc">Département (Z-A)</option>
+                        <option value="nom">Nom (A-Z)</option>
+                        <option value="nbHabitants">Population (décroissant)</option>
+                        <option value="departement.nom">Département (A-Z)</option>
+                        <option value="departement.code">Code département</option>
                     </select>
                 </div>
             </div>
+
+            <!-- Outils avancés Villes -->
+            <details class="advanced-tools">
+                <summary><i class="fas fa-wrench"></i> Recherches et outils avancés (Villes)</summary>
+                <div class="advanced-grid">
+                    <div class="tool-card">
+                        <h4><i class="fas fa-search"></i> Recherches par nom</h4>
+                        <div class="form-inline">
+                            <input id="ville-search-nom" type="text" placeholder="Nom exact">
+                            <button class="btn btn-sm" onclick="villesSearchNom()">Chercher</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-search-contient" type="text" placeholder="Nom contient">
+                            <button class="btn btn-sm" onclick="villesSearchNomContient()">Chercher</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-search-prefix" type="text" placeholder="Nom commence par">
+                            <button class="btn btn-sm" onclick="villesNomCommence()">Chercher</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-users"></i> Population</h4>
+                        <div class="form-inline">
+                            <input id="ville-pop-min" type="number" placeholder="Min">
+                            <button class="btn btn-sm" onclick="villesPopMin()">Filtrer</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-pop-min2" type="number" placeholder="Min">
+                            <input id="ville-pop-max2" type="number" placeholder="Max">
+                            <button class="btn btn-sm" onclick="villesPopPlage()">Filtrer</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-list-ol"></i> Pagination</h4>
+                        <div class="form-inline">
+                            <input id="ville-page" type="number" placeholder="Page" value="0">
+                            <input id="ville-size" type="number" placeholder="Taille" value="20">
+                            <button class="btn btn-sm" onclick="villesPaginated()">Charger</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-map-marker-alt"></i> Par département</h4>
+                        <div class="form-inline">
+                            <input id="ville-dept-code" type="text" placeholder="Code (ex: 34)">
+                            <input id="ville-dept-min" type="number" placeholder="Min (optionnel)">
+                            <button class="btn btn-sm" onclick="villesDeptMin()">Lister</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-dept-code2" type="text" placeholder="Code">
+                            <input id="ville-dept-min2" type="number" placeholder="Min">
+                            <input id="ville-dept-max2" type="number" placeholder="Max">
+                            <button class="btn btn-sm" onclick="villesDeptPlage()">Lister</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-dept-code3" type="text" placeholder="Code">
+                            <input id="ville-dept-topn" type="number" placeholder="Top N" value="10">
+                            <button class="btn btn-sm" onclick="villesDeptTop()">Top N</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-dept-code4" type="text" placeholder="Code">
+                            <button class="btn btn-sm" onclick="villesDeptPlusPeuplee()">Plus peuplée</button>
+                            <button class="btn btn-sm" onclick="villesDeptStats()">Stats</button>
+                            <button class="btn btn-sm" onclick="villesExportByDept()">Exporter</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-sliders-h"></i> Recherche avancée</h4>
+                        <div class="form-inline">
+                            <input id="ville-adv-nom" type="text" placeholder="Nom (optionnel)">
+                            <input id="ville-adv-min" type="number" placeholder="Min (optionnel)">
+                            <input id="ville-adv-max" type="number" placeholder="Max (optionnel)">
+                            <input id="ville-adv-dept" type="text" placeholder="Dept (optionnel)">
+                            <button class="btn btn-sm" onclick="villesRechercheAvancee()">Rechercher</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-tools"></i> Gestion ponctuelle</h4>
+                        <div class="form-inline">
+                            <input id="ville-update-id" type="number" placeholder="ID ville">
+                            <input id="ville-update-pop" type="number" placeholder="Nv. population">
+                            <button class="btn btn-sm" onclick="villesUpdatePopulation()">Mettre à jour</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="ville-quick-nom" type="text" placeholder="Nom">
+                            <input id="ville-quick-pop" type="number" placeholder="Habitants">
+                            <input id="ville-quick-dept" type="text" placeholder="Code dept">
+                            <button class="btn btn-sm" onclick="villesCreationRapide()">Créer rapide</button>
+                        </div>
+                        <div class="form-inline">
+                            <button class="btn btn-sm" onclick="villesCount()">Compter les villes</button>
+                        </div>
+                        <div class="form-block">
+                            <textarea id="ville-import-json" placeholder='Coller un tableau JSON de villes (DTO)'></textarea>
+                            <button class="btn btn-sm" onclick="villesImport()">Importer</button>
+                        </div>
+                    </div>
+                </div>
+            </details>
 
             <!-- Liste des villes -->
             <div class="table-container">
@@ -112,13 +226,14 @@
                         <!-- Les villes seront chargées ici via JavaScript -->
                     </tbody>
                 </table>
+                
+                <!-- Pagination des villes -->
+                <div id="villes-pagination" class="pagination-container"></div>
+            </div>
             </div>
 
-            <!-- Pagination -->
-            <div id="villes-pagination" class="pagination">
-                <!-- Pagination générée dynamiquement -->
-            </div>
-        </div>
+
+
 
         <!-- Section Départements -->
         <div id="departements-section" class="tab-content">
@@ -140,12 +255,12 @@
                 <form id="departement-form">
                     <div class="form-group">
                         <label for="departement-code"><i class="fas fa-hashtag"></i> Code du département</label>
-                        <input type="text" id="departement-code" name="code" required 
+                        <input type="text" id="departement-code" name="code" required
                                placeholder="Ex: 75, 13, 69..." maxlength="3" pattern="[0-9A-Z]{2,3}">
                     </div>
                     <div class="form-group">
                         <label for="departement-nom"><i class="fas fa-map"></i> Nom du département</label>
-                        <input type="text" id="departement-nom" name="nom" required 
+                        <input type="text" id="departement-nom" name="nom" required
                                placeholder="Ex: Paris, Bouches-du-Rhône..." maxlength="100">
                     </div>
                     <div class="form-actions">
@@ -184,7 +299,102 @@
                 </div>
             </div>
 
-            <!-- Filtres départements -->
+
+            <!-- Outils avancés Départements -->
+            <details class="advanced-tools">
+                <summary><i class="fas fa-wrench"></i> Recherches et outils avancés (Départements)</summary>
+                <div class="advanced-grid">
+                    <div class="tool-card">
+                        <h4><i class="fas fa-search"></i> Recherches</h4>
+                        <div class="form-inline">
+                            <input id="dep-search-nom" type="text" placeholder="Nom">
+                            <button class="btn btn-sm" onclick="depSearchNom()">Chercher</button>
+                        </div>
+                        <div class="form-inline">
+                            <button class="btn btn-sm" onclick="depAvecNom()">Avec nom</button>
+                            <button class="btn btn-sm" onclick="depSansNom()">Sans nom</button>
+                            <button class="btn btn-sm" onclick="depAvecVilles()">Avec villes</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-min-villes" type="number" placeholder="Min villes">
+                            <button class="btn btn-sm" onclick="depMinVilles()">Filtrer</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-min-pop" type="number" placeholder="Min population">
+                            <button class="btn btn-sm" onclick="depMinPopulation()">Filtrer</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-layer-group"></i> Catégories & codes</h4>
+                        <div class="form-inline">
+                            <button class="btn btn-sm" onclick="depMetropolitains()">Métropolitains</button>
+                            <button class="btn btn-sm" onclick="depOutreMer()">Outre-mer</button>
+                            <button class="btn btn-sm" onclick="depCorse()">Corse</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-code-prefix" type="text" placeholder="Code commence par">
+                            <button class="btn btn-sm" onclick="depCodeCommence()">Filtrer</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-building"></i> Villes par département</h4>
+                        <div class="form-inline">
+                            <input id="dep-code-villes" type="text" placeholder="Code dept">
+                            <button class="btn btn-sm" onclick="depVillesByCode()">Lister</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-code-top" type="text" placeholder="Code">
+                            <input id="dep-top-n" type="number" value="10" placeholder="Top N">
+                            <button class="btn btn-sm" onclick="depTopByCode()">Top N</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-code-min" type="text" placeholder="Code">
+                            <input id="dep-min" type="number" placeholder="Min">
+                            <button class="btn btn-sm" onclick="depVillesPopMin()">Min population</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-code-range" type="text" placeholder="Code">
+                            <input id="dep-range-min" type="number" placeholder="Min">
+                            <input id="dep-range-max" type="number" placeholder="Max">
+                            <button class="btn btn-sm" onclick="depVillesPopPlage()">Dans plage</button>
+                        </div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h4><i class="fas fa-chart-bar"></i> Statistiques & gestion</h4>
+                        <div class="form-inline">
+                            <button class="btn btn-sm" onclick="depCount()">Compter départements</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-code-stats" type="text" placeholder="Code">
+                            <button class="btn btn-sm" onclick="depStatsByCode()">Stats (code)</button>
+                            <button class="btn btn-sm" onclick="depPopulationTotaleByCode()">Population totale</button>
+                            <button class="btn btn-sm" onclick="depNombreVillesByCode()">Nombre de villes</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-create-code" type="text" placeholder="Code">
+                            <input id="dep-create-nom" type="text" placeholder="Nom (optionnel)">
+                            <button class="btn btn-sm" onclick="depCreationRapide()">Créer rapide</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-update-code" type="text" placeholder="Code">
+                            <input id="dep-update-nom" type="text" placeholder="Nouveau nom">
+                            <button class="btn btn-sm" onclick="depUpdateNomByCode()">Mettre à jour nom</button>
+                        </div>
+                        <div class="form-inline">
+                            <button class="btn btn-sm" onclick="depUpdateNomsManquants()">Compléter noms manquants</button>
+                        </div>
+                        <div class="form-inline">
+                            <input id="dep-exists-code" type="text" placeholder="Code">
+                            <button class="btn btn-sm" onclick="depExistsByCode()">Existe ?</button>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Filtres et recherche départements -->
             <div class="filters-container">
                 <div class="search-group">
                     <i class="fas fa-search"></i>
@@ -193,7 +403,7 @@
                 <div class="sort-group">
                     <label for="departement-sort">Trier par :</label>
                     <select id="departement-sort" onchange="sortDepartements()">
-                        <option value="nom">Nom</option>
+                        <option value="nom">Nom (A-Z)</option>
                         <option value="code">Code</option>
                         <option value="population">Population</option>
                         <option value="nombreVilles">Nombre de villes</option>
@@ -217,6 +427,9 @@
                         <!-- Les départements seront chargés ici via JavaScript -->
                     </tbody>
                 </table>
+                
+                <!-- Pagination des départements -->
+                <div id="departements-pagination" class="pagination-container"></div>
             </div>
         </div>
 
@@ -270,6 +483,7 @@
                 <p>Chargement en cours...</p>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Scripts -->
