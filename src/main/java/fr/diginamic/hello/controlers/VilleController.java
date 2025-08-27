@@ -6,6 +6,7 @@ import fr.diginamic.hello.mappers.VilleMapper;
 import fr.diginamic.hello.models.Ville;
 import fr.diginamic.hello.repositories.VilleRepositoryHelper;
 import fr.diginamic.hello.services.VilleService;
+import fr.diginamic.hello.swagger.SwaggerVilleController;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,10 +30,14 @@ import java.util.Optional;
  *
  * @RestController = @Controller + @ResponseBody
  * Toutes les méthodes renvoient directement des données JSON
+ *
+ * @author Matthieu - Développeur Full Stack
+ * @version 2.0.0 - Avec documentation Swagger intégrée
+ * @since 2025-08-26
  */
 @RestController
 @RequestMapping("/villes") // URL de base pour toutes les méthodes
-public class VilleController {
+public class VilleController implements SwaggerVilleController {
 
     @Autowired
     private VilleService villeService;
@@ -43,28 +48,24 @@ public class VilleController {
     // ==================== ROUTES CRUD DE BASE ====================
 
     /**
-     * GET /villes - Récupère toutes les villes avec pagination
-     * @param page numéro de la page (défaut: 0)
-     * @param size taille de la page (défaut: 20)
-     * @param sort tri (défaut: id)
-     * @return Page<VilleDTO> Page des villes
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping
     public Page<VilleDTO> getAllVilles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sort) {
-        
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         Page<Ville> villesPage = villeService.findAll(pageable);
         return villesPage.map(villeMapper::toDTO);
     }
 
     /**
-     * GET /villes/{id} - Récupère une ville par son ID
-     * @param id identifiant de la ville
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/{id}")
     public VilleDTO getVilleById(@PathVariable Long id) {
         Optional<Ville> ville = villeService.findById(id);
@@ -73,23 +74,20 @@ public class VilleController {
     }
 
     /**
-     * POST /villes - Crée une nouvelle ville
-     * @param villeDTO données de la ville
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @PostMapping
     public VilleDTO createVille(@Valid @RequestBody VilleDTO villeDTO) {
-    Ville ville = villeMapper.toEntity(villeDTO);
+        Ville ville = villeMapper.toEntity(villeDTO);
         Ville savedVille = villeService.save(ville);
         return villeMapper.toDTO(savedVille);
     }
 
     /**
-     * PUT /villes/{id} - Met à jour une ville
-     * @param id identifiant de la ville
-     * @param villeDTO nouvelles données
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @PutMapping("/{id}")
     public VilleDTO updateVille(@PathVariable Long id, @Valid @RequestBody VilleDTO villeDTO) {
         // Vérifier que la ville existe
@@ -104,26 +102,25 @@ public class VilleController {
     }
 
     /**
-     * DELETE /villes/{id} - Supprime une ville
-     * @param id identifiant de la ville
+     * {@inheritDoc}
      */
+    @Override
     @DeleteMapping("/{id}")
     public void deleteVille(@PathVariable Long id) {
         // Vérifier que la ville existe avant suppression
         if (!villeService.findById(id).isPresent()) {
             throw ExceptionFonctionnelle.ressourceNonTrouvee("Ville", id);
         }
-        
+
         villeService.deleteById(id);
     }
 
     // ==================== NOUVELLES ROUTES DU TP - ÉTAPE 4 ====================
 
     /**
-     * GET /villes/search/nom?nom=Paris - Recherche par nom exact
-     * @param nom nom de la ville
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/search/nom")
     public VilleDTO findByNom(@RequestParam String nom) {
         Optional<Ville> ville = villeService.findByNom(nom);
@@ -132,10 +129,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/search/nom-contient?nom=Saint - Recherche par nom partiel
-     * @param nom nom partiel de la ville
-     * @return List<VilleDTO>
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/search/nom-contient")
     public List<VilleDTO> findByNomContaining(@RequestParam String nom) {
         List<Ville> villes = villeService.findByNomContaining(nom);
@@ -143,10 +139,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/search/nom-commence?prefix=Saint - Recherche des villes dont le nom commence par...
-     * @param prefix préfixe du nom
-     * @return List<VilleDTO> villes triées par nom
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/search/nom-commence")
     public List<VilleDTO> findByNomStartingWith(@RequestParam String prefix) {
         List<Ville> villes = villeService.findByNomStartingWith(prefix);
@@ -154,10 +149,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/search/population-min?min=100000 - Villes avec population > min
-     * @param min population minimum
-     * @return List<VilleDTO> villes triées par population décroissante
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/search/population-min")
     public List<VilleDTO> findByPopulationGreaterThan(@RequestParam Integer min) {
         List<Ville> villes = villeService.findByPopulationGreaterThan(min);
@@ -165,11 +159,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/search/population-plage?min=50000&max=200000 - Villes avec population entre min et max
-     * @param min population minimum
-     * @param max population maximum
-     * @return List<VilleDTO> villes triées par population décroissante
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/search/population-plage")
     public List<VilleDTO> findByPopulationBetween(@RequestParam Integer min,
                                                   @RequestParam Integer max) {
@@ -178,11 +170,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/departement/{code}?min=10000 - Villes d'un département avec population > min
-     * @param code code du département (ex: "75", "13")
-     * @param min population minimum (optionnel)
-     * @return List<VilleDTO> villes du département triées par population décroissante
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/departement/{code}")
     public List<VilleDTO> findByDepartementAndMinPopulation(
             @PathVariable String code,
@@ -199,12 +189,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/departement/{code}/plage?min=10000&max=100000 - Villes d'un département avec population dans une plage
-     * @param code code du département
-     * @param min population minimum
-     * @param max population maximum
-     * @return List<VilleDTO> villes du département triées par population décroissante
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/departement/{code}/plage")
     public List<VilleDTO> findByDepartementAndPopulationRange(
             @PathVariable String code,
@@ -216,11 +203,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/departement/{code}/top?n=10 - Les N villes les plus peuplées d'un département
-     * @param code code du département
-     * @param n nombre de villes à récupérer (défaut: 10)
-     * @return List<VilleDTO> les N villes les plus peuplées du département
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/departement/{code}/top")
     public List<VilleDTO> findTopNVillesByDepartement(
             @PathVariable String code,
@@ -233,19 +218,18 @@ public class VilleController {
     // ==================== ROUTES STATISTIQUES ====================
 
     /**
-     * GET /villes/count - Nombre total de villes
-     * @return nombre de villes
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/count")
     public long getTotalCount() {
         return villeService.count();
     }
 
     /**
-     * GET /villes/departement/{code}/stats - Statistiques d'un département
-     * @param code code du département
-     * @return VilleRepositoryHelper.DepartementStats
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/departement/{code}/stats")
     public VilleRepositoryHelper.DepartementStats getDepartementStats(@PathVariable String code) {
         VilleRepositoryHelper.DepartementStats stats = villeService.getDepartementStats(code);
@@ -256,10 +240,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/departement/{code}/plus-peuplee - Ville la plus peuplée d'un département
-     * @param code code du département
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/departement/{code}/plus-peuplee")
     public VilleDTO getMostPopulatedVilleInDepartement(@PathVariable String code) {
         Optional<Ville> ville = villeService.findMostPopulatedVilleInDepartement(code);
@@ -270,11 +253,9 @@ public class VilleController {
     // ==================== ROUTES DE GESTION AVANCÉE ====================
 
     /**
-     * PUT /villes/{id}/population?nouveauNb=150000 - Met à jour uniquement la population
-     * @param id identifiant de la ville
-     * @param nouveauNb nouveau nombre d'habitants
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @PutMapping("/{id}/population")
     public VilleDTO updatePopulation(@PathVariable Long id,
                                      @RequestParam Integer nouveauNb) {
@@ -283,12 +264,9 @@ public class VilleController {
     }
 
     /**
-     * POST /villes/creation-rapide - Création rapide d'une ville
-     * @param nom nom de la ville
-     * @param nbHabitants nombre d'habitants
-     * @param codeDepartement code du département
-     * @return VilleDTO
+     * {@inheritDoc}
      */
+    @Override
     @PostMapping("/creation-rapide")
     public VilleDTO createVilleRapide(
             @RequestParam String nom,
@@ -299,10 +277,9 @@ public class VilleController {
     }
 
     /**
-     * POST /villes/import - Import en lot de villes
-     * @param villesDTO liste de villes à importer
-     * @return List<VilleDTO>
+     * {@inheritDoc}
      */
+    @Override
     @PostMapping("/import")
     public List<VilleDTO> importVilles(@RequestBody List<VilleDTO> villesDTO) {
         List<Ville> villes = villeMapper.toEntityList(villesDTO);
@@ -311,10 +288,9 @@ public class VilleController {
     }
 
     /**
-     * GET /villes/export/departement/{code} - Export de toutes les villes d'un département
-     * @param code code du département
-     * @return List<VilleDTO>
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/export/departement/{code}")
     public List<VilleDTO> exportVillesByDepartement(@PathVariable String code) {
         List<Ville> villes = villeService.exportVillesByDepartement(code);
@@ -324,13 +300,9 @@ public class VilleController {
     // ==================== ROUTES DE RECHERCHE AVANCÉE ====================
 
     /**
-     * GET /villes/search/avancee?nom=&minPop=&maxPop=&dept= - Recherche multi-critères
-     * @param nom nom (optionnel)
-     * @param minPop population minimum (optionnel)
-     * @param maxPop population maximum (optionnel)
-     * @param dept code département (optionnel)
-     * @return List<VilleDTO>
+     * {@inheritDoc}
      */
+    @Override
     @GetMapping("/search/avancee")
     public List<VilleDTO> rechercheAvancee(
             @RequestParam(required = false) String nom,

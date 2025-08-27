@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
             ExceptionFonctionnelle ex, WebRequest request) {
         
         Locale locale = LocaleContextHolder.getLocale();
-        String title = messageSource.getMessage("error.business.title", null, locale);
+        String title = messageSource.getMessage("error.business.title", null, "Erreur métier", locale);
         String messageKey = ex.getMessageKey() != null
                 ? ex.getMessageKey()
                 : (ex.getCode() != null ? "error.business." + ex.getCode() : null);
@@ -131,8 +131,8 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            messageSource.getMessage("error.validation.title", null, locale),
-            messageSource.getMessage("error.validation.message", null, locale),
+            messageSource.getMessage("error.validation.title", null, "Erreur de validation", locale),
+            messageSource.getMessage("error.validation.message", null, "Les données fournies sont invalides", locale),
             request.getDescription(false).replace("uri=", "")
         );
         
@@ -157,8 +157,8 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            messageSource.getMessage("error.constraint.title", null, locale),
-            messageSource.getMessage("error.constraint.message", null, locale),
+            messageSource.getMessage("error.constraint.title", null, "Erreur de contrainte", locale),
+            messageSource.getMessage("error.constraint.message", null, "Une contrainte a été violée", locale),
             request.getDescription(false).replace("uri=", "")
         );
         
@@ -184,8 +184,8 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
-            messageSource.getMessage("error.entityNotFound.title", null, locale),
-            ex.getMessage() != null ? ex.getMessage() : messageSource.getMessage("error.entityNotFound.message.default", null, locale),
+            messageSource.getMessage("error.entityNotFound.title", null, "Ressource non trouvée", locale),
+            ex.getMessage() != null ? ex.getMessage() : messageSource.getMessage("error.entityNotFound.message.default", null, "L'entité demandée n'existe pas", locale),
             request.getDescription(false).replace("uri=", "")
         );
         
@@ -204,8 +204,8 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            messageSource.getMessage("error.bind.title", null, locale),
-            messageSource.getMessage("error.bind.message", null, locale),
+            messageSource.getMessage("error.bind.title", null, "Erreur de liaison", locale),
+            messageSource.getMessage("error.bind.message", null, "Erreur lors de la liaison des données", locale),
             request.getDescription(false).replace("uri=", "")
         );
         
@@ -229,8 +229,8 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            messageSource.getMessage("error.dataIntegrity.title", null, locale),
-            messageSource.getMessage("error.dataIntegrity.message.default", null, locale),
+            messageSource.getMessage("error.dataIntegrity.title", null, "Erreur d'intégrité", locale),
+            messageSource.getMessage("error.dataIntegrity.message.default", null, "Violation d'intégrité des données", locale),
             request.getDescription(false).replace("uri=", "")
         );
         
@@ -240,14 +240,14 @@ public class GlobalExceptionHandler {
         String message = ex.getMessage();
         if (message != null) {
             if (message.contains("format_code_departement")) {
-                error.setMessage(messageSource.getMessage("error.dataIntegrity.message.formatCodeDept", null, locale));
+                error.setMessage(messageSource.getMessage("error.dataIntegrity.message.formatCodeDept", null, "Format de code département invalide", locale));
                 error.getDetails().put("constraint", "format_code_departement");
-                error.getDetails().put("help", messageSource.getMessage("error.dataIntegrity.help.formatCodeDept", null, locale));
+                error.getDetails().put("help", messageSource.getMessage("error.dataIntegrity.help.formatCodeDept", null, "Le code doit être au format: 01-95 ou 2A/2B", locale));
             } else if (message.contains("duplicate key") || message.contains("unique")) {
-                error.setMessage(messageSource.getMessage("error.dataIntegrity.message.duplicate", null, locale));
+                error.setMessage(messageSource.getMessage("error.dataIntegrity.message.duplicate", null, "Cette valeur existe déjà", locale));
                 error.getDetails().put("constraint", "unique_constraint");
             } else {
-                error.setMessage(messageSource.getMessage("error.dataIntegrity.message.generic", null, locale));
+                error.setMessage(messageSource.getMessage("error.dataIntegrity.message.generic", null, "Erreur d'intégrité des données", locale));
                 error.getDetails().put("sqlError", message);
             }
         }
@@ -265,9 +265,9 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
-            messageSource.getMessage("error.methodArgumentType.title", null, locale),
+            messageSource.getMessage("error.methodArgumentType.title", null, "Type de paramètre invalide", locale),
             messageSource.getMessage("error.methodArgumentType.message", 
-                new Object[]{ex.getName(), ex.getValue()}, locale),
+                new Object[]{ex.getName(), ex.getValue()}, "Le paramètre " + ex.getName() + " a une valeur invalide: " + ex.getValue(), locale),
             request.getDescription(false).replace("uri=", "")
         );
         
@@ -289,8 +289,8 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            messageSource.getMessage("error.general.title", null, locale),
-            messageSource.getMessage("error.general.message", null, locale),
+            messageSource.getMessage("error.general.title", null, "Erreur interne", locale),
+            messageSource.getMessage("error.general.message", null, "Une erreur interne s'est produite", locale),
             request.getDescription(false).replace("uri=", "")
         );
         
