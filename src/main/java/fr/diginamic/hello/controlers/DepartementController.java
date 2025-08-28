@@ -8,6 +8,8 @@ import fr.diginamic.hello.models.Departement;
 import fr.diginamic.hello.models.Ville;
 import fr.diginamic.hello.services.DepartementService;
 import fr.diginamic.hello.services.VilleService;
+import fr.diginamic.hello.services.ExportService;
+import fr.diginamic.hello.services.PdfExportService;
 import fr.diginamic.hello.swagger.SwaggerDepartementController;
 import jakarta.validation.Valid;
 import fr.diginamic.hello.exceptions.ExceptionFonctionnelle;
@@ -16,8 +18,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.itextpdf.text.DocumentException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -451,6 +461,63 @@ public class DepartementController implements SwaggerDepartementController {
         public Long getPopulationTotale() { return populationTotale; }
     }
 
-    // ==================== GESTION DES ERREURS ====================
+    @Autowired
+    private PdfExportService pdfExportService;
+
+    /**
+     * Exporte les détails d'un département au format PDF
+     *
+     * @param codeDepartement code du département à exporter
+     * @return fichier PDF en téléchargement
+     */
+    @GetMapping("/{codeDepartement}/export/pdf")
+    public ResponseEntity<byte[]> exportDepartementToPdf(@PathVariable String codeDepartement) {
+
+        try {
+            ByteArrayOutputStream pdfData = pdfExportService.exportDepartementToPdf(codeDepartement);
+
+            // Génération du nom de fichier avec timestamp
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = String.format("departement_%s_%s.pdf", codeDepartement, timestamp);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(pdfData.size());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfData.toByteArray());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DocumentException | IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Alternative pour prévisualiser le PDF dans le navigateur
+     */
+    @GetMapping("/{codeDepartement}/preview/pdf")
+    public ResponseEntity<byte[]> previewDepartementPdf(@PathVariable String codeDepartement) {
+
+        try {
+            ByteArrayOutputStream pdfData = pdfExportService.exportDepartementToPdf(codeDepartement);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            // Pas de Content-Disposition pour affichage inline
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfData.toByteArray());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DocumentException | IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
 }

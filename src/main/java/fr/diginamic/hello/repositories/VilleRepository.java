@@ -178,4 +178,15 @@ public interface VilleRepository extends JpaRepository<Ville, Long> {
     @Query(value = "SELECT * FROM ville WHERE nb_habs > :minPopulation ORDER BY nb_habs DESC",
             nativeQuery = true)
     List<Ville> findVillesWithPopulationGreaterThanNative(@Param("minPopulation") Integer minPopulation);
+
+
+    /**
+     * Trouve toutes les villes dont la population est supérieure au seuil donné
+     * Avec jointure pour récupérer les informations du département
+     */
+    @Query("SELECT v FROM Ville v " +
+            "JOIN FETCH v.departement d " +
+            "WHERE v.nbHabitants > :populationMinimum " +
+            "ORDER BY v.nbHabitants DESC")
+    List<Ville> findByNbHabitantsGreaterThan(@Param("populationMinimum") int populationMinimum);
 }

@@ -26,11 +26,13 @@ public interface DepartementRepository extends JpaRepository<Departement, Long> 
     // ==================== MÉTHODES DE RECHERCHE DE BASE ====================
 
     /**
-     * Recherche un département par son code
-     * @param code code du département (ex: "75", "13", "2A")
-     * @return Optional<Departement>
+     * Trouve un département par son code avec ses villes
      */
-    Optional<Departement> findByCode(String code);
+    @Query("SELECT d FROM Departement d " +
+            "LEFT JOIN FETCH d.villes v " +
+            "WHERE d.code = :code " +
+            "ORDER BY v.nbHabitants DESC")
+    Optional<Departement> findByCode(@Param("code") String code);
 
     /**
      * Recherche un département par son nom (si le nom n'est pas null)
@@ -176,4 +178,6 @@ public interface DepartementRepository extends JpaRepository<Departement, Long> 
     @Query("SELECT d FROM Departement d " +
            "ORDER BY (SELECT COUNT(v) FROM Ville v WHERE v.departement = d) DESC")
     Page<Departement> findAllOrderByNombreVilles(Pageable pageable);
+
+
 }

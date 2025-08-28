@@ -5,6 +5,7 @@ import fr.diginamic.hello.exceptions.ExceptionFonctionnelle;
 import fr.diginamic.hello.mappers.VilleMapper;
 import fr.diginamic.hello.models.Ville;
 import fr.diginamic.hello.repositories.VilleRepositoryHelper;
+import fr.diginamic.hello.services.ExportService;
 import fr.diginamic.hello.services.VilleService;
 import fr.diginamic.hello.swagger.SwaggerVilleController;
 import jakarta.validation.Valid;
@@ -13,8 +14,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -310,6 +318,38 @@ public class VilleController implements SwaggerVilleController {
         return villeMapper.toDTOList(villes);
     }
 
-    // ==================== GESTION DES ERREURS ====================
+    @Autowired
+    private ExportService exportService;
+
+    /**
+     * Exporte les villes au format CSV dont la population est supérieure au minimum donné
+     *
+     * @param populationMinimum seuil minimum de population (défaut: 0)
+     * @return fichier CSV en téléchargement
+     */
+    @GetMapping("/export/csv")
+    public ResponseEntity<byte[]> exportVillesToCsv(
+            @RequestParam(defaultValue = "0") int populationMinimum) {
+
+        try {
+            ByteArrayOutputStream csvData = exportService.exportVillesToCsv(populationMinimum);
+
+            // Génération du nom de fichier avec timestamp
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = String.format("villes_pop_min_%d_%s.csv", populationMinimum, timestamp);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(csvData.size());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(csvData.toByteArray());
+
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
 }
