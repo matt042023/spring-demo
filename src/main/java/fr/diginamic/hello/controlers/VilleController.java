@@ -329,7 +329,7 @@ public class VilleController implements SwaggerVilleController {
      */
     @GetMapping("/export/csv")
     public ResponseEntity<byte[]> exportVillesToCsv(
-            @RequestParam(defaultValue = "0") int populationMinimum) {
+            @RequestParam Integer populationMinimum) {
 
         try {
             ByteArrayOutputStream csvData = exportService.exportVillesToCsv(populationMinimum);

@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -1037,5 +1039,66 @@ public interface SwaggerVilleController {
                     required = false,
                     schema = @Schema(type = "string", pattern = "^[0-9]{1,3}[AB]?$")
             ) @RequestParam(required = false) String dept
+    );
+
+    // ==================== EXPORT CSV ====================
+
+    @Operation(
+            summary = "📄 Export CSV des villes par population minimum", 
+            description = """
+            **Exporte les villes avec une population supérieure au seuil spécifié au format CSV.**
+            
+            **Contenu du CSV :**
+            - Nom de la ville
+            - Population (nombre d'habitants)
+            - Code du département
+            - Nom du département
+            - En-têtes de colonnes inclus
+            - Séparateur : virgule (,)
+            - Encodage : UTF-8
+            
+            **Filtrage :** Seules les villes dont la population est >= au minimum spécifié sont incluses.
+            **Tri :** Par population décroissante puis par nom de ville.
+            
+            **Format de fichier :** CSV téléchargeable avec nom horodaté.
+            **Utilisation :** Analyses démographiques, rapports Excel, traitement de données.
+            
+            ⚠️ **Performance :** Temps de génération proportionnel au nombre de villes retournées.
+            """, 
+            tags = {"🏙️ Villes", "📄 Export"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", 
+                    description = "✅ CSV généré avec succès",
+                    content = @Content(
+                            mediaType = "text/csv",
+                            schema = @Schema(type = "string", format = "binary", description = "Fichier CSV des villes")
+                    ),
+                    headers = @Header(
+                            name = "Content-Disposition", 
+                            description = "Nom du fichier CSV", 
+                            schema = @Schema(type = "string", example = "attachment; filename=villes_population_min_10000_20250828_143022.csv")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400", 
+                    description = "❌ Population minimum invalide", 
+                    content = @Content()
+            ),
+            @ApiResponse(
+                    responseCode = "500", 
+                    description = "❌ Erreur lors de la génération du CSV", 
+                    content = @Content()
+            )
+    })
+    ResponseEntity<byte[]> exportVillesToCsv(
+            @Parameter(
+                    description = "Population minimum pour filtrer les villes",
+                    example = "10000",
+                    required = true,
+                    schema = @Schema(type = "integer", minimum = "1", maximum = "50000000", 
+                                   description = "Nombre minimum d'habitants pour inclure une ville dans l'export")
+            ) @RequestParam Integer populationMinimum
     );
 }

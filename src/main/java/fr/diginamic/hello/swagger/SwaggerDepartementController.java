@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -673,5 +675,54 @@ public interface SwaggerDepartementController {
     })
     boolean existsByCode(
             @Parameter(description = "Code du département à vérifier", example = "34", required = true, schema = @Schema(type = "string", pattern = "^([0-9]{1,3}|2[AB])$")) @PathVariable String code
+    );
+
+    // ==================== EXPORT PDF ====================
+
+    @Operation(summary = "📄 Export PDF d'un département", description = """
+        **Exporte les détails complets d'un département au format PDF.**
+        
+        **Contenu du PDF :**
+        - Informations du département (code, nom)
+        - Liste de toutes les villes avec population
+        - Statistiques départementales
+        - Mise en forme professionnelle avec tableaux
+        
+        **Format :** Fichier PDF téléchargeable avec nom horodaté.
+        **Utilisation :** Rapports officiels, documentation, archivage.
+        
+        ⚠️ **Attention :** Peut être volumineux pour les grands départements.
+        """, tags = {"🏛️ Départements", "📄 Export"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "✅ PDF généré avec succès",
+                    content = @Content(mediaType = "application/pdf",
+                            schema = @Schema(type = "string", format = "binary", description = "Fichier PDF du département")),
+                    headers = @Header(name = "Content-Disposition", description = "Nom du fichier PDF", schema = @Schema(type = "string", example = "attachment; filename=departement_34_20250828_143022.pdf"))),
+            @ApiResponse(responseCode = "404", description = "❌ Département non trouvé", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "❌ Erreur lors de la génération du PDF", content = @Content())
+    })
+    ResponseEntity<byte[]> exportDepartementToPdf(
+            @Parameter(description = "Code du département à exporter", example = "34", required = true, schema = @Schema(pattern = "^([0-9]{1,3}|2[AB])$")) @PathVariable String codeDepartement
+    );
+
+    @Operation(summary = "👁️ Prévisualisation PDF d'un département", description = """
+        **Prévisualise le PDF d'un département directement dans le navigateur.**
+        
+        **Différence avec l'export :**
+        - Pas de téléchargement automatique
+        - Affichage inline dans le navigateur
+        - Même contenu que l'export PDF
+        
+        **Utilisation :** Vérification avant téléchargement, prévisualisation rapide.
+        """, tags = {"🏛️ Départements", "📄 Export"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "✅ Prévisualisation PDF générée",
+                    content = @Content(mediaType = "application/pdf",
+                            schema = @Schema(type = "string", format = "binary", description = "Fichier PDF à prévisualiser"))),
+            @ApiResponse(responseCode = "404", description = "❌ Département non trouvé", content = @Content()),
+            @ApiResponse(responseCode = "500", description = "❌ Erreur lors de la génération du PDF", content = @Content())
+    })
+    ResponseEntity<byte[]> previewDepartementPdf(
+            @Parameter(description = "Code du département à prévisualiser", example = "34", required = true, schema = @Schema(pattern = "^([0-9]{1,3}|2[AB])$")) @PathVariable String codeDepartement
     );
 }

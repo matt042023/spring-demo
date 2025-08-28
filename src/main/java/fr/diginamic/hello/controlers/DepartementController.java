@@ -22,7 +22,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.itextpdf.text.DocumentException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -491,7 +490,7 @@ public class DepartementController implements SwaggerDepartementController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
-        } catch (DocumentException | IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -515,7 +514,7 @@ public class DepartementController implements SwaggerDepartementController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
-        } catch (DocumentException | IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
