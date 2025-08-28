@@ -276,26 +276,6 @@ public class VilleController implements SwaggerVilleController {
         return villeMapper.toDTO(ville);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @PostMapping("/import")
-    public List<VilleDTO> importVilles(@RequestBody List<VilleDTO> villesDTO) {
-        List<Ville> villes = villeMapper.toEntityList(villesDTO);
-        List<Ville> villesImportees = villeService.importVilles(villes);
-        return villeMapper.toDTOList(villesImportees);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @GetMapping("/export/departement/{code}")
-    public List<VilleDTO> exportVillesByDepartement(@PathVariable String code) {
-        List<Ville> villes = villeService.exportVillesByDepartement(code);
-        return villeMapper.toDTOList(villes);
-    }
 
     // ==================== ROUTES DE RECHERCHE AVANCÉE ====================
 
