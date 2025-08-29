@@ -9,10 +9,22 @@ DELETE FROM ville;
 DELETE FROM departement;
 
 -- ========================================
+-- SUPPRESSION DE 10 DÉPARTEMENTS + VILLES LIÉES
+-- (tests de synchro API : ces départements seront recréés si manquants)
+-- ========================================
+
+DELETE FROM ville
+WHERE id_dept IN (SELECT id FROM departement WHERE code IN
+    ('02','06','17','25','34','44','59','69','83','93'));
+
+DELETE FROM departement
+WHERE code IN ('02','06','17','25','34','44','59','69','83','93');
+
+-- ========================================
 -- DÉPARTEMENTS FRANÇAIS
 -- ========================================
 
-INSERT INTO departement (code, nom) VALUES 
+INSERT INTO departement (code, nom) VALUES
 ('01', 'Ain'),
 ('02', 'Aisne'),
 ('03', 'Allier'),
@@ -22,7 +34,6 @@ INSERT INTO departement (code, nom) VALUES
 ('07', 'Ardèche'),
 ('08', 'Ardennes'),
 ('09', 'Ariège'),
-('10', 'Aube'),
 ('11', 'Aude'),
 ('12', 'Aveyron'),
 ('13', 'Bouches-du-Rhône'),
@@ -32,8 +43,8 @@ INSERT INTO departement (code, nom) VALUES
 ('17', 'Charente-Maritime'),
 ('18', 'Cher'),
 ('19', 'Corrèze'),
-('21', 'Côte-d\'Or'),
-('22', 'Côtes-d\'Armor'),
+('21', 'Côte-d''Or'),
+('22', 'Côtes-d''Armor'),
 ('23', 'Creuse'),
 ('24', 'Dordogne'),
 ('25', 'Doubs'),
@@ -106,13 +117,20 @@ INSERT INTO departement (code, nom) VALUES
 ('92', 'Hauts-de-Seine'),
 ('93', 'Seine-Saint-Denis'),
 ('94', 'Val-de-Marne'),
-('95', 'Val-d\'Oise'),
+('95', 'Val-d''Oise'),
 ('971', 'Guadeloupe'),
 ('972', 'Martinique'),
 ('973', 'Guyane'),
 ('974', 'La Réunion'),
 ('2A', 'Corse-du-Sud'),
 ('2B', 'Haute-Corse');
+
+-- ========================================
+-- VILLES FRANÇAISES AVEC CORRESPONDANCES EXACTES
+-- ========================================
+
+-- (la liste complète des INSERT INTO ville que tu avais)
+
 
 -- ========================================
 -- VILLES FRANÇAISES AVEC CORRESPONDANCES EXACTES
@@ -210,7 +228,6 @@ INSERT INTO ville (id, nom, id_dept, nb_habs) VALUES
 (13407,'Antony',(SELECT id FROM departement WHERE code = '92'),62210),
 (13408,'Pessac',(SELECT id FROM departement WHERE code = '33'),61859),
 (13409,'Ivry-sur-Seine',(SELECT id FROM departement WHERE code = '94'),60771),
-(13410,'Troyes',(SELECT id FROM departement WHERE code = '10'),60640),
 (13411,'Neuilly-sur-Seine',(SELECT id FROM departement WHERE code = '92'),60580),
 (13412,'Cayenne',(SELECT id FROM departement WHERE code = '973'),60580),
 (13413,'Montauban',(SELECT id FROM departement WHERE code = '82'),60444),
